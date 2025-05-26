@@ -1,0 +1,29 @@
+# Matikan directory listing untuk keamanan
+Options -Indexes
+
+# Tentukan file index utama
+DirectoryIndex index.php index.html
+
+# Aktifkan mod_rewrite jika tersedia
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pastikan URL tanpa .php tetap bisa diakses
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.*)$ $1.php [L]
+
+    # Redirect otomatis ke HTTPS (jika hosting support HTTPS)
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Atur PHP configuration (opsional)
+<IfModule lsapi_module>
+    php_flag display_errors On
+    php_value max_execution_time 60
+    php_value max_input_time 120
+    php_value memory_limit 256M
+    php_value post_max_size 32M
+    php_value upload_max_filesize 16M
+</IfModule>

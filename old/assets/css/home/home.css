@@ -1,0 +1,523 @@
+html, body {
+    overflow-x: hidden; /* Mencegah scroll horizontal */
+    width: 100%;
+    background-color: #f7f7f7;
+}
+
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 10%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+}
+
+header .logo img {
+    max-height: 50px;
+}
+
+header .buttons {
+    display: flex;
+    gap: 10px;
+}
+
+
+header .buttons a { 
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 50px; 
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+header .buttons .join {
+    background-color: #001A45;
+    color: #fff;
+}
+
+header .buttons .login {
+    background-color: #fff;
+    border: 2px solid #001A45;
+    color: #001A45;
+}
+
+header .buttons a:hover {
+    opacity: 0.8;
+}
+
+nav {
+    background-color: #ffffff;
+    padding: 10px 10%;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 50px 10%;
+    flex-wrap: wrap; /* Tambahkan agar elemen wrap di layar kecil */
+}
+
+.hero .text {
+    max-width: 50%;
+    flex: 1;
+}
+
+.hero .text-bottom {
+    color: #000957;
+    padding-bottom: 0; 
+}
+
+.hero .home-images-bottom img {
+    width: 100%; /* Ubah agar sesuai layar */
+    height: auto;
+    object-fit: cover; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+
+.hero .text h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.hero .text p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.hero .text .buttons {
+    margin-top: 30px;
+}
+
+.hero .text .buttons a {
+    text-decoration: none; 
+    margin: 0 10px;
+}
+
+.hero .home-images {
+    display: block;
+    width: 45%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 1;
+}
+
+.slide-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+}
+
+.slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    object-fit: cover;
+}
+
+.slide.active {
+    opacity: 1;
+}
+
+.highlight {
+    color: #000957;
+}
+
+.avatar-stack {
+    margin: 30px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatars {
+    display: flex;
+    align-items: center;
+}
+
+.avatars img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    margin-right: -10px;
+}
+
+.avatar-count {
+    background: #443EDE;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #fff;
+}
+
+.join-text {
+    color: #555;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+
+}
+
+
+/* Apply Quick Sans 500 to content elements */
+p, a, .content, .buttons {
+    font-family: 'Quick Sans', sans-serif;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+      .text {
+        text-align: center;
+    }
+    
+    .text h1,
+    .text p {
+        padding-right: 0 !important; /* Remove the padding-right on responsive */
+    }
+    .hero {
+        flex-direction: column; /* Stack elements for tablet */
+    }
+
+    .hero .text {
+        max-width: 100%;
+        text-align: center; /* Center text for tablet */
+    }
+
+    .hero .home-images {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    nav {
+        flex-wrap: wrap; /* Allow wrapping navigation items */
+    }
+}
+
+@media (max-width: 768px) {
+      .text {
+        text-align: center;
+    }
+    
+    .text h1,
+    .text p {
+        padding-right: 0 !important; /* Remove the padding-right on responsive */
+    }
+    header {
+        padding: 15px 5%;
+    }
+
+    nav {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav a {
+        margin: 5px 0;
+    }
+
+    .hero .text h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero .text p {
+        font-size: 1rem;
+    }
+
+    .hero .home-images-bottom img {
+        height: auto; /* Maintain aspect ratio */
+    }
+
+    .avatars img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .avatar-count {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+      .text {
+        text-align: center;
+    }
+    
+    .text h1,
+    .text p {
+        padding-right: 0 !important; /* Remove the padding-right on responsive */
+    }
+    header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero .text h1 {
+        font-size: 2rem;
+    }
+
+    .hero .text p {
+        font-size: 0.9rem;
+    }
+
+    .hero .home-images {
+        width: 100%;
+        margin: 20px 0;
+    }
+
+    .hero .text .buttons a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 320px) {
+    /* Header adjustments */
+    
+    header {
+        padding: 10px 3%;
+    }
+
+    header .logo img {
+        max-height: 40px;
+    }
+
+    header .buttons {
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    header .buttons a {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Navigation adjustments */
+    nav {
+        padding: 5px 3%;
+    }
+
+    nav a {
+        font-size: 0.85rem;
+        margin: 3px 0;
+    }
+
+    /* Hero section adjustments */
+    .hero {
+        padding: 30px 3%;
+    }
+
+    .hero .text h1 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .hero .text p {
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+    }
+
+    .hero .text .buttons {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .hero .text .buttons a {
+        margin: 0;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+        text-align: center;
+    }
+
+    /* Image container adjustments */
+    .slide-container {
+        height: 300px;
+    }
+
+    /* Avatar stack adjustments */
+    .avatar-stack {
+        margin: 20px 0;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .avatars img {
+        width: 25px;
+        height: 25px;
+        margin-right: -8px;
+    }
+
+    .avatar-count {
+        width: 25px;
+        height: 25px;
+        font-size: 10px;
+    }
+
+    .join-text {
+        font-size: 12px;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    /* Bottom image adjustments */
+    .hero .home-images-bottom img {
+        margin-top: 20px;
+    }
+}
+@media (max-width: 375px) {
+    /* Header adjustments */
+    header {
+        padding: 12px 4%;
+    }
+    
+    header .logo img {
+        max-height: 45px;
+    }
+    
+    header .buttons {
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    header .buttons a {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    /* Navigation adjustments */
+    nav {
+        padding: 8px 4%;
+    }
+    
+    nav a {
+        font-size: 0.9rem;
+        margin: 4px 0;
+    }
+    
+    /* Hero section adjustments */
+    .hero {
+        padding: 35px 4%;
+    }
+    
+    .hero .text h1 {
+        font-size: 1.8rem;
+        margin-bottom: 16px;
+    }
+    
+    .hero .text p {
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+    
+    /* Button fixes for 375px */
+    .hero .text .buttons {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+    
+    .hero .text .buttons a {
+        margin: 0;
+        font-size: 0.9rem;
+        padding: 10px 15px;
+        text-align: center;
+        width: 100%;
+        display: block;
+    }
+
+    /* Remove existing .buttons.fade-up styles that might conflict */
+    .buttons.fade-up {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+    }
+
+    .buttons.fade-up a {
+        width: 100%;
+        display: block;
+    }
+    
+    /* Image container adjustments */
+    .slide-container {
+        height: 320px;
+    }
+    
+    .hero .home-images {
+        margin: 24px 0;
+    }
+    
+    /* Avatar stack adjustments */
+    .avatar-stack {
+        margin: 24px 0;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .avatars img {
+        width: 28px;
+        height: 28px;
+        margin-right: -8px;
+    }
+    
+    .avatar-count {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+    
+    .join-text {
+        font-size: 13px;
+        text-align: center;
+        margin-top: 8px;
+    }
+    
+    /* Bottom image adjustments */
+    .hero .home-images-bottom img {
+        margin-top: 24px;
+        border-radius: 8px;
+    }
+    
+    /* Text adjustments */
+    .text-bottom {
+        text-align: center;
+        padding: 0 15px;
+    }
+   
+}

@@ -1,0 +1,153 @@
+/* Create a new file: assets/css/kelas/detail_kelas.css */
+.kelas-detail {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #6c757d;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+    background-color: #5a6268;
+}
+
+.kelas-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.kelas-image {
+    width: 300px;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.kelas-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.kelas-info {
+    flex: 1;
+}
+
+.kelas-info h2 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.mentor, .category, .price {
+    margin: 5px 0;
+    color: #666;
+}
+
+.price {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.section h3 {
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.info-grid, .session-grid, .learn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item, .session-item, .learn-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.info-item .label {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.info-item .value {
+    display: block;
+    color: #333;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.learn-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.learn-item i {
+    color: #28a745;
+    margin-top: 3px;
+}
+
+.link-grid {
+    display: flex;
+    gap: 20px;
+}
+
+.link-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    transition: opacity 0.3s;
+}
+
+.link-item:hover {
+    opacity: 0.9;
+}
+
+.link-item.youtube {
+    background-color: #ff0000;
+}
+
+.link-item.whatsapp {
+    background-color: #25d366;
+}
+
+/* Add to existing kelas.css */
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}

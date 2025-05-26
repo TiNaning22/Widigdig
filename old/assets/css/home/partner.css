@@ -1,0 +1,103 @@
+.partner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.partner-header {
+    margin-top: 10px;
+    text-align: center;
+    position: relative;
+}
+
+.partner-title {
+    font-family: 'Montserrat', sans-serif; /* Menggunakan font Montserrat */
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+
+.partner-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.partner-cards-wrapper {
+    display: flex; /* Default layout menggunakan flexbox */
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.5s ease;
+}
+
+.partner-card {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.partner-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.partner-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Layar Sedang (Tablet) */
+@media (max-width: 768px) {
+    .partner-cards-wrapper {
+        display: grid; /* Ubah dari flexbox ke grid */
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Otomatis menyesuaikan kolom */
+        gap: 15px;
+    }
+
+    .partner-card {
+        width: 100%; /* Menyesuaikan lebar berdasarkan grid */
+        height: auto; /* Tinggi fleksibel */
+    }
+}
+
+/* Layar Kecil (Mobile) */
+@media (max-width: 480px) {
+    .partner-container {
+        padding: 10px;
+    }
+
+    .partner-cards-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Kartu lebih kecil untuk layar kecil */
+        gap: 10px;
+    }
+
+    .partner-card {
+        width: 100%; /* Menyesuaikan grid */
+        height: auto;
+    }
+
+    .partner-card img {
+        padding: 8px; /* Kurangi padding gambar */
+    }
+
+    .partner-title {
+        font-size: 18px; /* Ukuran judul lebih kecil */
+    }
+}

@@ -1,0 +1,869 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700; /* Bold */
+}
+
+
+body {
+    font-family: 'Manrope', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fc;
+    color: #333;
+}
+.navbar {
+    background-color: #fff;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.navbar a {
+    text-decoration: none;
+    color: #000;
+    margin: 0 10px;
+}
+.container {
+    margin: 2rem auto;
+    padding: 2rem 1rem; 
+    background: #F1F4FF;
+    border-radius: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.course-header h1 {
+    font-size: 30px;
+    padding-left: 20px;
+
+
+}
+.course-content {
+    display: flex;
+    justify-content: space-between;
+}
+.course-details {
+    max-width: 600px;
+    padding-left: 20px;
+}
+.course-image img {
+    display: flex;
+    justify-content: space-between;
+    max-width: 400px;
+    border-radius: 8px;
+    margin-top: -50px;
+}
+
+
+.course-rating-enrollment {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.price {
+    font-size: 24px; /* Atur ukuran font lebih besar */
+    font-weight: bold; /* Buat teks lebih tebal */
+    color: #333; /* Warna teks */
+}
+
+
+
+
+.rating {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10rem; 
+}
+
+.rating span {
+    margin-left: 0.5rem;
+    color: #ffb400; /* Warna bintang */
+}
+
+.enrolled {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avatars {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.avatars img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    position: relative;
+    z-index: 1;
+    margin-left: -10px; /* Tumpukan avatar */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatars img:first-child {
+    margin-left: 0; /* Avatar pertama tidak perlu overlap */
+}
+
+.enrolled span {
+    font-size: 14px;
+    color: #666;
+}
+
+h1 {
+    font-weight: 700; /* Bold */
+}
+
+p {
+    font-weight: 400; /* Normal */
+}
+
+span {
+    font-weight: 500; /* Medium */
+}
+
+/* Container for course features */
+.course-features {
+    background-color: #f8f9fc; /* Background color for the container */
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.course-features h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #001A45;
+}
+
+.list-itemsdrop {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    }
+    .list-itemsdrop li {
+    display: flex;
+    align-items: center;
+    }
+    .checkmark {
+    margin-right: 0.5rem;
+    color: #001A45;
+    font-size: 1.2rem;
+    }
+    .list-itemsdrop a {
+    color: #001A45;
+    text-decoration: none;
+    }
+    .list-itemsdrop a:hover {
+    text-decoration: underline;
+    }
+
+details {
+    background: #f8f9fc;
+    border-radius: 16px;
+
+    border: 1px solid #001a45;
+    position: relative;
+    overflow: hidden;
+    transition: border-left 0.3s ease, border-right 0.3s ease;
+}
+
+details summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #001a45;
+    list-style: none; /* Menghapus marker default */
+}
+
+details summary::marker {
+    content: ""; /* Hapus marker bawaan */
+}
+
+.arrow-icon {
+    font-size: 14px;
+    color: #001a45;
+    transition: transform 0.3s ease; /* Animasi rotasi */
+}
+
+details[open] .arrow-icon {
+    transform: rotate(180deg); /* Rotasi panah ke atas saat terbuka */
+}
+
+details[open] {
+    border-left: 4px solid #001a45;
+    border-right: 4px solid #001a45;
+}
+
+details ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style: none; /* Menghapus bullet points */
+}
+
+details ul li {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 0.5rem;
+    display: flex; /* Membuat checkmark dan teks dalam satu baris */
+    align-items: center;
+}
+
+.checkmark {
+    color: #6c63ff;
+    font-weight: bold;
+    margin-right: 0.5rem;
+    font-size: 16px;
+}
+
+.hai{
+    color: #E1E9FE;
+}
+
+/* Typography */
+h1, h4 {
+    font-weight: 700; /* Bold */
+    color: #333;
+}
+
+p {
+    font-weight: 400; /* Normal */
+}
+
+span {
+    font-weight: 500; /* Medium */
+}
+
+
+.list-items {
+    list-style: none; 
+    padding: 0;
+    margin: 0;
+}
+
+.list-items li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Jarak antara ikon dan teks */
+    margin-bottom: 1rem; /* Spasi antar item */
+    font-size: 16px;
+    position: relative; /* Agar divider bisa diposisikan dengan baik */
+    padding-right: 1rem; /* Memberi ruang untuk divider di sebelah kanan */
+}
+
+.list-items li::after {
+    content: ''; /* Membuat divider */
+    position: absolute;
+    right: 0; /* Tempatkan divider di sebelah kanan */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 80%;
+    background-color: #ddd; /* Warna divider */
+}
+
+.list-items li:last-child::after {
+    content: none; /* Menghapus divider pada item terakhir */
+}
+
+.icon {
+    color: #443EDE; /* Warna ikon biru */
+    font-size: 18px; /* Ukuran ikon */
+}
+
+a {
+    color: #443EDE; /* Warna link */
+    text-decoration: none;
+}
+.card-coursesfeature1 {
+    padding: 1.5rem;
+    background: #FFFFFF;
+    color: #000;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 82%;
+    border: 3px solid #E1E9FE; 
+    }
+
+.card-coursesfeature1:before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    border-radius: 16px;
+    pointer-events: none; 
+}
+
+.card-coursesfeature h4 {
+    font-size: 24px; /* Ukuran font untuk heading */
+}
+
+.card-coursesfeature p {
+    font-size: 16px; /* Ukuran font untuk paragraf */
+}
+
+.card-coursesfeature ul li {
+    font-size: 14px; /* Ukuran font untuk list item */
+}
+
+
+.row-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+   padding-right: 2rem;
+    max-width: 1100;
+
+}
+
+/* Accordion Section */
+.accordion {
+    flex: 1; /* Agar accordion mengambil setengah lebar */
+    max-width: 50%; /* Batasi lebar maksimal accordion */
+    flex-direction: column;
+    border-radius: 16px;
+    border-color: #666;
+    padding-left: 13rem;
+}
+
+.session-content-btn {
+    background-color: #001A45;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px 0;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s;
+    width: 100%; /* Supaya tombol memenuhi lebar kontainer */
+}
+
+.session-content-btn:hover {
+    background-color: #002765;
+}
+
+.session-content-btn:focus {
+    outline: none;
+}
+
+
+
+details {
+    margin-bottom: 1rem;
+    background: #f8f9fc;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid #001A45;
+    position: relative;
+    overflow: hidden;
+    transition: border-left 0.3s ease, border-right 0.3s ease;
+}
+
+details summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #001A45;
+    list-style: none;
+}
+
+details summary::marker {
+    content: "";
+}
+
+.arrow-icon {
+    font-size: 14px;
+    color: #001A45;
+    transition: transform 0.3s ease;
+}
+
+details[open] .arrow-icon {
+    transform: rotate(180deg);
+}
+
+details[open] {
+    border-left: 4px solid #001A45;
+    border-right: 4px solid #001A45;
+}
+
+/* List Styles */
+.list-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-items li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 16px;
+}
+
+.checkmark {
+    color: #443EDE;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Cards Section */
+.card-container {
+    max-width: 73%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+
+.card-coursesfeature {
+    padding: 1.5rem;
+    background: #001A45;
+    color: #fff;
+    border-radius: 16px;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-coursesfeature h4 {
+    font-size: 18px;
+    margin-bottom: 1rem;
+}
+
+.card-coursesfeature ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.card-coursesfeature ul li {
+    margin-bottom: 0.5rem;
+}
+
+.buy-nowcek {
+    background-color: #121212;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    text-decoration: none;
+    border-radius: 24px;
+    display: inline-block;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.join-group {
+    display: inline-block;
+    padding: 20px 40px;
+    background-color: #25D366;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.join-group:hover {
+    background-color: #128C7E;
+}
+
+
+/* Header and Text */
+h1 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    color: #333;
+    font-size: 30px;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-weight: 400;
+}
+
+span {
+    font-weight: 500;
+}
+
+/* Instructor Profile */
+.rating {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10rem;
+}
+
+.rating span {
+    margin-left: 0.5rem;
+    color: #ffb400;
+}
+
+.enrolled {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avatar-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    }
+    .avatar-container {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    }
+    .avatar {
+    max-width: 100%;
+    height: auto;
+    }
+.enrolled span {
+    font-size: 14px;
+    color: #666;
+}
+
+.list-itemscolumn {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    }
+    .list-itemscolumn li {
+    display: flex;
+    align-items: center;
+    }
+    .divider {
+    color: #ccc;
+    margin: 0 0.5rem;
+    }
+    .list-itemscolumn a {
+    color: #001A45;
+    text-decoration: none;
+    }
+    .list-itemscolumn a:hover {
+    text-decoration: underline;
+    }
+
+    .allcourse {
+        background-color: #001a45;
+    }
+
+    .private-courses {
+        padding: 2rem;
+        max-width: 85%;
+        position: relative;
+      }
+      
+      .private-container {
+        max-width: 1300;
+        margin: 0 auto;
+      }
+      
+      .private-cards-wrapper {
+        display: flex;
+        gap: 1rem;
+        overflow: hidden;
+        position: relative;
+        scroll-behavior: smooth; /* Agar scroll terasa mulus */
+      }
+      
+      .private-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.2s ease-in-out;
+        flex: 0 0 23%;
+      }
+      
+      .private-card:hover {
+        transform: translateY(-5px);
+      }
+      
+      .private-card-image {
+        line-height: 0;
+      }
+      
+      .private-card-image img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        display: block;
+      }
+      
+      .private-card-content {
+        padding: 1rem;
+      }
+      
+      .private-course-title {
+        color: #2d3748;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.4;
+      }
+      
+      .private-instructor-name {
+        color: #718096;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .private-price {
+        color: #2d3748;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
+      
+      .private-card-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .private-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: #2d3748;
+      }
+      
+      .private-rating span:first-child {
+        color: #f6ad55;
+      }
+      
+      .private-students {
+        color: #718096;
+        font-size: 0.875rem;
+      }
+      
+      .private-avatars {
+        display: flex;
+        align-items: center;
+      }
+      
+      .private-avatars img {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        border: 2px solid white;
+        margin-left: -0.5rem;
+      }
+      
+      .private-avatars img:first-child {
+        margin-left: 0;
+      }
+      
+      /* Hilangkan tombol */
+      .private-courses-controls {
+        display: none;
+      }
+
+      .title{
+        padding-left: 2rem;
+      }
+
+      /* Add these media queries at the end of your existing CSS file */
+
+/* Mobile and Tablet Responsive Styles */
+@media screen and (max-width: 768px) {
+    .container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .navbar {
+        flex-direction: column;
+        padding: 0.5rem;
+    }
+
+    .course-content {
+        flex-direction: column;
+    }
+
+    .course-details {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .course-image img {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    .course-rating-enrollment {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rating {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .row-container {
+        flex-direction: column;
+        padding: 1rem;
+        width: 100%;
+        max-width: none;
+    }
+
+    .accordion {
+        width: 100%;
+        max-width: none;
+        padding-left: 0;
+        /* Remove any margin that might be causing shrinkage */
+        margin: 0;  
+    }
+
+    .card-container {
+        width: 100%;
+        max-width: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .card-coursesfeature1 {
+        max-width: 100%;    
+    }
+
+    .private-cards-wrapper {
+        flex-direction: column;
+    }
+
+    .private-card {
+        flex: 0 0 100%;
+    }
+
+    .course-header h1 {
+        font-size: 24px;
+        padding-left: 10px;
+    }
+
+    .buy-nowcek, .join-group {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+}
+
+/* Tablet Specific Styles */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .private-cards-wrapper {
+        flex-wrap: wrap;
+    }
+
+    .private-card {
+        flex: 0 0 48%;
+    }
+
+    .accordion {
+        max-width: 100%;
+        padding-left: 0;
+    }
+
+    .card-container {
+        max-width: 100%;
+    }
+
+    .card-coursesfeature1 {
+        max-width: 90%;
+    }
+
+    .course-details {
+        max-width: 50%;
+    }
+}
+
+/* Additional Responsive Utilities */
+@media screen and (max-width: 480px) {
+    .list-items {
+        flex-direction: column;
+    }
+
+    .list-items li::after {
+        display: none;
+    }
+
+    details {
+        padding: 1rem;
+    }
+
+    .course-features {
+        padding: 1rem;
+    }
+
+    .private-courses {
+        padding: 1rem;
+    }
+
+    .avatars img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .title {
+        padding-left: 1rem;
+    }
+}
+
+/* Fix for horizontal scrolling */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Touch-friendly adjustments for mobile */
+@media (hover: none) {
+    .navbar a,
+    .buy-nowcek,
+    .join-group {
+        padding: 12px 20px;
+    }
+
+    details summary {
+        padding: 15px;
+    }
+}
+
+/* High-resolution screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .course-image img {
+        max-width: 100%;
+        height: auto;
+    }
+}   

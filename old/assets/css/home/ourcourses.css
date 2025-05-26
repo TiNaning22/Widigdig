@@ -1,0 +1,122 @@
+.our-courses {
+    text-align: center;
+    padding: 50px 0;
+    background-color: #f9f9f9;
+}
+
+.our-courses h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #001A45;
+    margin-top: 50px;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 kolom untuk layar besar */
+    gap: 20px;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Sesuaikan dengan grid */
+    max-width: 320px; /* Tetapkan batas lebar maksimum */
+    height: 96px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    margin-right: 10px;
+}
+
+.card-content h2 {
+    text-align: start;
+    font-size: 1.25rem;
+    color: #001A45;
+    margin: 0;
+}
+
+.card-content p {
+    text-align: start;
+    font-size: 0.875rem;
+    color: #555;
+    margin: 5px 0 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+
+/* Apply Quick Sans 500 to content elements */
+p, a, .content, .buttons {
+    font-family: 'Quick Sans', sans-serif;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .card-container {
+        grid-template-columns: repeat(2, 1fr); /* Ubah menjadi 2 kolom */
+        gap: 15px;
+    }
+
+    .our-courses h1 {
+        font-size: 2rem; /* Kurangi ukuran font */
+    }
+}
+
+@media (max-width: 768px) {
+    .card-container {
+        grid-template-columns: 1fr; /* Ubah menjadi 1 kolom */
+        gap: 10px;
+    }
+
+    .card {
+        max-width: 100%; /* Hilangkan batas lebar */
+    }
+
+    .our-courses h1 {
+        font-size: 1.75rem;
+    }
+
+    .card-content h2 {
+        font-size: 1.1rem; /* Kurangi ukuran font */
+    }
+
+    .card-content p {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .our-courses {
+        padding: 30px 10px;
+    }
+
+    .card {
+        padding: 8px; /* Kurangi padding */
+    }
+
+    .card-content h2 {
+        font-size: 1rem;
+    }
+
+    .card-content p {
+        font-size: 0.75rem;
+    }
+
+    .our-courses h1 {
+        font-size: 1.5rem; /* Lebih kecil untuk layar sangat kecil */
+    }
+}

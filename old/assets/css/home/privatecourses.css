@@ -1,0 +1,284 @@
+.private-courses {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+.private-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.private-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.private-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.private-see-all {
+  font-size: 0.875rem;
+  color: #3182ce;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.private-see-all:hover {
+  text-decoration: underline;
+  color: #2b6cb0; 
+}
+
+.arrow-icon {
+  margin-left: 5px;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.private-see-all:hover .arrow-icon {
+  transform: translateX(5px);
+}
+
+.private-cards-wrapper {
+  display: flex;
+  gap: 1rem;
+  overflow: hidden;
+  position: relative;
+  scroll-behavior: smooth;
+  flex-wrap: wrap; /* Tambahkan agar responsif */
+}
+
+.private-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+  flex: 0 0 calc(25% - 1rem); /* 4 kolom dengan jarak antar kartu */
+  max-width: calc(25% - 1rem);
+}
+
+.private-card:hover {
+  transform: translateY(-5px);
+}
+
+.private-card-image {
+  line-height: 0;
+}
+
+.private-card-image img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.private-card-content {
+  padding: 1rem;
+}
+
+.private-course-title {
+  color: #2d3748;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.private-instructor-name {
+  color: #718096;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.private-price {
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.private-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.private-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #2d3748;
+}
+
+.private-rating span:first-child {
+  color: #f6ad55;
+}
+
+.private-students {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.private-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.private-avatars img {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -0.5rem;
+}
+
+.private-avatars img:first-child {
+  margin-left: 0;
+}
+
+/* Hilangkan tombol */
+.private-courses-controls {
+  display: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* Apply Quick Sans 500 to content elements */
+p, a, .content, .buttons {
+  font-family: 'Quick Sans', sans-serif;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .private-card {
+      flex: 0 0 calc(33.333% - 1rem); /* 3 kolom untuk tablet */
+      max-width: calc(33.333% - 1rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .private-header {
+      flex-direction: column; /* Tumpuk header */
+      align-items: flex-start;
+  }
+
+  .private-title {
+      font-size: 1.25rem; /* Kurangi ukuran font */
+  }
+
+  .private-card {
+      flex: 0 0 calc(50% - 1rem); /* 2 kolom untuk ponsel besar */
+      max-width: calc(50% - 1rem);
+  }
+
+  .private-card-content {
+      padding: 0.75rem; /* Kurangi padding */
+  }
+
+  .private-course-title {
+      font-size: 0.9rem;
+  }
+
+  .private-price {
+      font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .private-container {
+      padding: 0 1rem;
+  }
+
+  .private-cards-wrapper {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 1rem;
+      padding: 1rem 1rem 1.5rem 1rem;
+      margin: 0 -1rem;
+      scroll-padding: 0 1rem;
+      scroll-snap-type: x proximity;
+  }
+
+  .private-card {
+      flex: 0 0 80%;
+      max-width: 80%;
+      scroll-snap-align: start;
+      margin-right: 0;
+  }
+
+  .private-card:first-child {
+      margin-left: 0;
+  }
+
+  .private-card:last-child {
+      margin-right: 0;
+  }
+
+  /* Customize scrollbar */
+  .private-cards-wrapper {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e0 #f8f9fa;
+  }
+
+  .private-cards-wrapper::-webkit-scrollbar {
+      display: block;
+      height: 6px;
+  }
+
+  .private-cards-wrapper::-webkit-scrollbar-track {
+      background: #f8f9fa;
+      border-radius: 3px;
+  }
+
+  .private-cards-wrapper::-webkit-scrollbar-thumb {
+      background-color: #cbd5e0;
+      border-radius: 3px;
+  }
+
+  .private-card-content {
+      padding: 1.25rem;
+  }
+
+  .private-header {
+      padding: 0 1rem;
+      margin-bottom: 1.5rem;
+  }
+
+  .private-course-title {
+      font-size: 1rem;
+  }
+
+  .private-price {
+      font-size: 1.1rem;
+  }
+
+  .private-card-stats {
+      margin-top: 1rem;
+  }
+
+  /* Adjust image height for better mobile view */
+  .private-card-image img {
+      height: 180px;
+  }
+}
+
+/* Add smooth scrolling to parent element */
+.private-courses {
+  overflow-x: hidden;
+}

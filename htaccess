@@ -1,0 +1,29 @@
+# Mengaktifkan mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pastikan file PHP bisa dijalankan langsung
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.*)$ $1.php [L]
+</IfModule>
+
+# Menghindari error 403 dengan menentukan file index
+DirectoryIndex index.php index.html index.htm
+
+# Mengaktifkan handler PHP jika perlu
+<IfModule mime_module>
+    AddHandler application/x-httpd-ea-php84___lsphp .php .php8 .phtml
+</IfModule>
+
+# Konfigurasi PHP dasar
+<IfModule lsapi_module>
+    php_flag display_errors On
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    php_value max_input_vars 5000
+    php_value memory_limit 512M
+    php_value post_max_size 50M
+    php_value upload_max_filesize 50M
+    php_flag zlib.output_compression Off
+</IfModule>

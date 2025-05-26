@@ -1,0 +1,166 @@
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2%;
+    padding: 0 5%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.benefit-item h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #373737;
+}
+
+.benefit-item p {
+    font-size: 1rem;
+    color: #6D6D6D;
+    text-align: justify; /* Text alignment justified */
+}
+
+.divider {
+    height: 1px;
+    background-color: #004085;
+    width: 98%; /* Sesuaikan lebar divider dengan lebar container */
+    margin: 10px 0; /* Mengurangi jarak antar divider */
+}
+
+.benefitwithus {
+    flex: 0 0 40%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 40px 0;
+    margin-left: 60px;
+    box-sizing: border-box;
+    background-color: transparent;
+    align-self: flex-start;
+    height: 100%;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .benefitwithus {
+        flex: 0 0 100%;
+        padding: 20px 0;
+        margin-left: 0;
+    }
+
+    .benefits {
+        padding: 0 5%; /* Kurangi padding */
+    }
+
+    .cta h2 {
+        font-size: 1.8rem;
+    }
+
+    .cta p {
+        font-size: 1rem;
+    }
+
+    .benefit-image {
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .cta h2 {
+        font-size: 1.5rem;
+    }
+
+    .cta p {
+        font-size: 0.9rem;
+    }
+
+    .start-learn-btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+}
+
+.benefit-image {
+    width: 100%;
+    height: auto;
+    margin-top: 20px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+
+.cta {
+    padding: 0;
+    text-align: left;
+}
+
+.cta h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #000957;
+}
+
+.cta p {
+    font-size: 1.2rem;
+    color: #6D6D6D;
+}
+
+.start-learn-btn {
+    background-color: #0056b3;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 35px;
+    margin-bottom: 35px;
+    transition: background-color 0.3s ease;
+}
+
+.start-learn-btn:hover {
+    background-color: #004085;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+}
+
+p, a, .content, .buttons {
+    font-family: 'Quicksand';
+    font-weight: 500;
+}
+
+.benefits {
+    display: flex;
+    margin-top: 50px;
+    flex-direction: column; /* Tetap gunakan layout column */
+    background-color: #f7f7f7;
+    gap: 50px;
+    flex: 1;
+    padding: 5% 5% 0 4%;
+    width: 100%; /* Pastikan container lebar penuh */
+}
+
+.benefit-item {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.benefit-item h2 {
+    font-size: 1.25rem;
+    color: #000957;
+    margin: 0;
+}
+
+.benefit-item p {
+    font-size: 0.875rem;
+    color: #555;
+    margin-top: 5px;
+}
