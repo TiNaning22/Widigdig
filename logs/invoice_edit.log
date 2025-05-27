@@ -1,0 +1,17 @@
+[2025-05-27 11:58:26] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_supplier' in 'field list'
+[2025-05-27 11:59:05] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_supplier' in 'field list'
+[2025-05-27 12:00:15] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_supplier' in 'field list'
+[2025-05-27 13:05:30] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_supplier' in 'field list'
+[2025-05-27 13:29:02] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_supplier' in 'field list'
+[2025-05-27 13:31:35] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_tanggal' in 'field list'
+[2025-05-27 13:34:15] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'pembelian_kasir' in 'field list'
+[2025-05-27 13:37:42] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Column 'invoice_hutang_jatuh_tempo' cannot be null
+[2025-05-27 13:41:13] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Column 'invoice_hutang_dp' cannot be null
+[2025-05-27 13:41:44] [USER:3] [IP:::1] Transaksi gagal: Gagal insert detail item 91: Table 'bpkbautodigital_widigdo.pembelian_detail' doesn't exist
+[2025-05-27 13:48:08] [USER:3] [IP:::1] Transaksi gagal: Gagal insert detail item 91: Duplicate entry '19' for key 'PRIMARY'
+[2025-05-27 13:50:23] [USER:3] [IP:::1] Transaksi gagal: Gagal insert detail item 90: Duplicate entry '20' for key 'PRIMARY'
+[2025-05-27 13:54:12] [USER:3] [IP:::1] Transaksi gagal: Gagal insert history barang 90: Table 'bpkbautodigital_widigdo.stock_history' doesn't exist
+[2025-05-27 13:56:15] [USER:3] [IP:::1] Transaksi berhasil: Invoice #2131212222 Total: Rp.61.050
+[2025-05-27 13:58:46] [USER:3] [IP:::1] Transaksi berhasil: Invoice #222 Total: Rp.2.218.890
+[2025-05-27 14:42:29] [USER:3] [IP:::1] Transaksi berhasil: Invoice #12345123 Total: Rp.16.550
+[2025-05-27 14:43:53] [USER:3] [IP:::1] Transaksi berhasil: Invoice #12 Total: Rp.1.110.000

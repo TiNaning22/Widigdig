@@ -41,7 +41,7 @@
           <div class="col-12">
             <div class="callout callout-info">
               <h5><i class="fas fa-info"></i> Note:</h5>
-				Halaman ini telah ditingkatkan untuk dicetak. Klik tombol cetak di bagian bawah faktur.
+				        Halaman ini telah ditingkatkan untuk dicetak. Klik tombol cetak di bagian bawah faktur.
             </div>
 
 

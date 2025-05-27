@@ -1,56 +1,57 @@
-<?php 
-include 'aksi/koneksi.php';
-$cabang = $_GET['cabang'];
+<?php
+include '_header.php';
 
-// Database connection info 
-$dbDetails = array( 
-    'host' => $servername, 
-    'user' => $username, 
-    'pass' => $password, 
-    'db'   => $db
-); 
- 
-// DB table to use 
-// $table = 'members'; 
-$table = <<<EOT
- (
-    SELECT 
-      a.barang_id, 
-      a.barang_kode,
-      a.barang_nama, 
-      a.barang_harga, 
-      a.barang_stock, 
-      a.barang_satuan_id,
-      a.barang_cabang,
-      b.satuan_id,
-      b.satuan_nama
-    FROM barang a
-    LEFT JOIN satuan b ON a.barang_satuan_id = b.satuan_id
- ) temp
-EOT;
- 
-// Table's primary key 
-$primaryKey = 'barang_id'; 
- 
-// Array of database columns which should be read and sent back to DataTables. 
-// The `db` parameter represents the column name in the database.  
-// The `dt` parameter represents the DataTables column identifier. 
+$requestData = $_REQUEST;
 $columns = array( 
-    array( 'db' => 'barang_id',    'dt'       => 0 ),
-    array( 'db' => 'barang_kode',  'dt'       => 1 ), 
-    array( 'db' => 'barang_nama',  'dt'       => 2 ), 
-    array( 'db' => 'satuan_nama',  'dt'       => 3 ),
-    array( 'db' => 'barang_stock', 'dt'       => 4 )
-); 
-
-// Include SQL query processing class 
-require 'aksi/ssp.php'; 
-
-// require('ssp.class.php');
-
-// Output data as json format 
-echo json_encode( 
-    SSP::simple( $_GET, $dbDetails, $table, $primaryKey, $columns, null, "barang_cabang = $cabang " )
-    // SSP::simple( $_GET, $dbDetails, $table, $primaryKey, $columns)
-
+    0 => 'barang_kode',
+    1 => 'barang_nama',
+    2 => 'satuan_1',
+    3 => 'barang_harga',
+    4 => 'barang_stock'
 );
+
+// Query dasar
+$query = "SELECT b.*, s1.satuan_nama as satuan_1 
+          FROM barang b
+          LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+          WHERE b.barang_cabang = '".$sessionCabang."'";
+
+// Total data tanpa filter
+$totalData = mysqli_num_rows(mysqli_query($conn, $query));
+$totalFiltered = $totalData;
+
+// Pencarian
+if (!empty($requestData['search']['value'])) {
+    $query .= " AND (b.barang_kode LIKE '%".$requestData['search']['value']."%' ";
+    $query .= " OR b.barang_nama LIKE '%".$requestData['search']['value']."%')";
+    $totalFiltered = mysqli_num_rows(mysqli_query($conn, $query));
+}
+
+// Pengurutan
+$query .= " ORDER BY ".$columns[$requestData['order'][0]['column']]." ".$requestData['order'][0]['dir']." 
+            LIMIT ".$requestData['start']." ,".$requestData['length']." ";
+
+$result = mysqli_query($conn, $query);
+$data = array();
+
+while ($row = mysqli_fetch_array($result)) {
+    $nestedData = array(); 
+    $nestedData[] = $row["barang_kode"];
+    $nestedData[] = $row["barang_nama"];
+    $nestedData[] = $row["satuan_1"];
+    $nestedData[] = $row["barang_harga"];
+    $nestedData[] = $row["barang_stock"];
+    $nestedData[] = ""; // Kolom aksi
+    
+    $data[] = $nestedData;
+}
+
+$json_data = array(
+    "draw"            => intval($requestData['draw']),  
+    "recordsTotal"    => intval($totalData),  
+    "recordsFiltered" => intval($totalFiltered), 
+    "data"            => $data   
+);
+
+echo json_encode($json_data);
+?>

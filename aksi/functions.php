@@ -1505,35 +1505,79 @@ function hapusDraft($invoice, $cabang) {
 }
 
 // =========================================== CUSTOMER ====================================== //
- 
+
+// function writeLog($message) {
+//     $logFile = 'log.txt'; // bisa Anda arahkan ke folder tertentu, misalnya logs/
+//     $timestamp = date("Y-m-d H:i:s");
+//     $logMessage = "[{$timestamp}] {$message}" . PHP_EOL;
+//     file_put_contents($logFile, $logMessage, FILE_APPEND);
+// }
+
 function tambahCustomer($data) {
-	global $conn;
-	// ambil data dari tiap elemen dalam form
-	$customer_nama     = htmlspecialchars($data["customer_nama"]);
-	$customer_tlpn     = htmlspecialchars($data["customer_tlpn"]);
-	$customer_email    = htmlspecialchars($data["customer_email"]);
-	$customer_alamat   = htmlspecialchars($data["customer_alamat"]);
-	$customer_create   = date("d F Y g:i:s a");
-	$customer_status   = htmlspecialchars($data["customer_status"]);
-	$customer_category = $data["customer_category"];
-	$customer_cabang   = htmlspecialchars($data["customer_cabang"]);
+    global $conn;
 
-	// Cek Email
-	$customer_tlpn_cek = mysqli_num_rows(mysqli_query($conn, "select * from customer where customer_tlpn = '$customer_tlpn' "));
+    // Ambil data dari form
+    $customer_nama     = htmlspecialchars($data["customer_nama"]);
+    $customer_tlpn     = htmlspecialchars($data["customer_tlpn"]);
+    $customer_email    = htmlspecialchars($data["customer_email"]);
+    $customer_alamat   = htmlspecialchars($data["customer_alamat"]);
+    $customer_create   = date("Y-m-d H:i:s"); // format ideal untuk MySQL
+    $customer_status   = htmlspecialchars($data["customer_status"]);
+    $customer_category = $data["customer_category"];
+    $customer_cabang   = htmlspecialchars($data["customer_cabang"]);
 
-	if ( $customer_tlpn_cek > 0 ) {
-		echo "
-			<script>
-				alert('Customer Sudah Terdaftar');
-			</script>
-		";
-	} else {
-		// query insert data
-		$query = "INSERT INTO customer VALUES ('', '$customer_nama', '$customer_tlpn', '$customer_email', '$customer_alamat', '$customer_create', '$customer_status', '$customer_category', '$customer_cabang')";
-		mysqli_query($conn, $query);
+    // writeLog("TRY ADD: {$customer_nama}, WA: {$customer_tlpn}, Email: {$customer_email}");
 
-		return mysqli_affected_rows($conn);
-	}
+    // Validasi email (jika tidak kosong)
+    if (!empty($customer_email) && !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+        // writeLog("INVALID EMAIL: {$customer_email}");
+        echo "<script>alert('Email tidak valid');</script>";
+        return 0;
+    }
+
+    // Validasi nomor WA
+    if (!preg_match('/^[0-9]{10,15}$/', $customer_tlpn)) {
+        // writeLog("INVALID PHONE: {$customer_tlpn}");
+        echo "<script>alert('Nomor telepon tidak valid');</script>";
+        return 0;
+    }
+
+    // Cek apakah sudah terdaftar
+    $cek = mysqli_query($conn, "SELECT * FROM customer WHERE customer_tlpn = '$customer_tlpn'");
+    if (!$cek) {
+        // writeLog("QUERY ERROR: " . mysqli_error($conn));
+        echo "<script>alert('Terjadi kesalahan saat pengecekan duplikat');</script>";
+        return 0;
+    }
+
+    if (mysqli_num_rows($cek) > 0) {
+        // writeLog("DUPLICATE: {$customer_tlpn} sudah ada");
+        echo "<script>alert('Customer Sudah Terdaftar');</script>";
+        return 0;
+    }
+
+    // Insert data
+    $query = "INSERT INTO customer 
+              (customer_nama, customer_tlpn, customer_email, customer_alamat, customer_create, customer_status, customer_category, customer_cabang) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        // writeLog("PREPARE FAILED: " . $conn->error);
+        echo "<script>alert('Terjadi kesalahan saat persiapan query');</script>";
+        return 0;
+    }
+
+    $stmt->bind_param("ssssssis", $customer_nama, $customer_tlpn, $customer_email, $customer_alamat, $customer_create, $customer_status, $customer_category, $customer_cabang);
+
+    if ($stmt->execute()) {
+        // writeLog("SUCCESS: Customer '{$customer_nama}' berhasil ditambahkan.");
+        return $stmt->affected_rows;
+    } else {
+        // writeLog("EXECUTE FAILED: " . $stmt->error);
+        echo "<script>alert('Gagal menambahkan data');</script>";
+        return 0;
+    }
 }
 
 function editCustomer($data){
@@ -2003,77 +2047,185 @@ function updateQTYpembelian($data) {
 
 // ============================================== Transaksi Pembelian ======================== //
 function updateStockPembelian($data) {
-	global $conn;
-	$id                  = $data["barang_ids"];
-	$keranjang_qty       = $data["keranjang_qty"];
-	$keranjang_id_kasir  = $data['keranjang_id_kasir'];
-	$pembelian_invoice   = $data['pembelian_invoice'];
-	$kik                 = $data['kik'];
-	$barang_harga_beli   = $data['barang_harga_beli'];
-	$pembelian_invoice_parent = $data['pembelian_invoice_parent'];
-	$invoice_pembelian_cabang = $data['invoice_pembelian_cabang'];
+    global $conn;
+    
+    // Start transaction
+    mysqli_autocommit($conn, FALSE);
+    
+    try {
+        // Validasi session
+        if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+            throw new Exception("Session user tidak valid");
+        }
+        
+        // Validasi data required
+        $requiredFields = ['invoice_supplier', 'pembelian_invoice2', 'no_referensi', 'angka1'];
+        foreach($requiredFields as $field) {
+            if (!isset($data[$field]) || empty($data[$field])) {
+                throw new Exception("Field $field wajib diisi");
+            }
+        }
+        
+        // Hitung total dari keranjang
+        $total = 0;
+        $totalDiskon = 0;
+        foreach($data['barang_ids'] as $index => $barangId) {
+			
+            $harga = floatval($data['barang_harga_beli'][$index]);
+            $qty = intval($data['keranjang_qty'][$index]);
+            $diskon = floatval($data['diskon_value'][$index] ?? 0);
+            
+            if ($harga <= 0) {
+                throw new Exception("Harga barang ID $barangId tidak valid (Rp. 0)");
+            }
+            
+            $subtotal = $harga * $qty;
+            $subtotalSetelahDiskon = $subtotal * (1 - ($diskon/100));
+            $total += $subtotalSetelahDiskon;
+            $totalDiskon += ($subtotal - $subtotalSetelahDiskon);
+        }
+        
+        $ppnPersen = floatval($data['ppn_value'] ?? 11);
+        $ppn = $total * ($ppnPersen/100);
+        $grandTotal = $total + $ppn;
+        
+        // Clean number format
+        $bayar = floatval(str_replace('.', '', $data['angka1']));
+        $kembali = $bayar - $grandTotal; // Diperbaiki perhitungan kembalian
+        
+        // 1. Insert invoice pembelian
+        $invoiceData = [
+            'pembelian_invoice' => mysqli_real_escape_string($conn, $data['pembelian_invoice2']),
+            'pembelian_invoice_parent' => mysqli_real_escape_string($conn, $data['pembelian_invoice_parent2'] ?? ''),
+            'invoice_tgl' => date("Y-m-d H:i:s"),
+            'invoice_supplier' => intval($data['invoice_supplier']),
+            'invoice_total' => $grandTotal,
+            'invoice_bayar' => $bayar,
+            'invoice_kembali' => $kembali,
+            'invoice_kasir' => intval($_SESSION['user_id']),
+            'invoice_date' => date("Y-m-d"),
+            'invoice_date_edit' => date("Y-m-d H:i:s"),
+            'invoice_kasir_edit' => intval($_SESSION['user_id']),
+            'invoice_pembelian_cabang' => intval($data['invoice_pembelian_cabang']),
+            'invoice_total_discount' => $totalDiskon,
+            'invoice_pajak_persen' => $ppnPersen,
+            'invoice_pajak_nominal' => $ppn,
+            'invoice_hutang' => ($bayar < $grandTotal) ? ($grandTotal - $bayar) : 0,
+            'invoice_hutang_lunas' => ($bayar >= $grandTotal) ? 1 : 0,
+            'invoice_hutang_jatuh_tempo' => !empty($data['invoice_hutang_jatuh_tempo']) ? $data['invoice_hutang_jatuh_tempo'] : NULL,
+            'invoice_hutang_dp' => isset($data['invoice_hutang_dp']) ? $data['invoice_hutang_dp'] : NULL,
+            'invoice_no_ref' => mysqli_real_escape_string($conn, $data['no_referensi']),
+            'invoice_no_faktur' => mysqli_real_escape_string($conn, $data['no_faktur'] ?? ''),
+            'invoice_margin_persen' => floatval($data['margin_persen'] ?? 0)
+        ];
+        
+        $queryInvoice = "INSERT INTO invoice_pembelian SET ";
+        foreach($invoiceData as $key => $value) {
+            if (is_null($value)) {
+                $queryInvoice .= "$key = NULL, ";
+            } else {
+                $queryInvoice .= "$key = '".mysqli_real_escape_string($conn, $value)."', ";
+            }
+        }
+        $queryInvoice = rtrim($queryInvoice, ', ');
+        
+        $resultInvoice = mysqli_query($conn, $queryInvoice);
+        if (!$resultInvoice) {
+            throw new Exception("Gagal insert invoice: " . mysqli_error($conn));
+        }
+        
+        $invoiceId = mysqli_insert_id($conn);
+        if (!$invoiceId) {
+            throw new Exception("Gagal mendapatkan invoice ID");
+        }
+        
+        // 2. Insert detail pembelian dan update stock
+        foreach($data['barang_ids'] as $index => $barangId) {
+            $barangId = intval($barangId);
+            $qty = intval($data['keranjang_qty'][$index]);
+            $harga = floatval($data['barang_harga_beli'][$index]);
+            $diskon = floatval($data['diskon_value'][$index] ?? 0);
+            $subtotal = $harga * $qty * (1 - ($diskon/100));
+            
+            // Insert detail
+            $queryDetail = "INSERT INTO pembelian SET 
+						pembelian_invoice = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
+						pembelian_barang_id = $barangId,
+						barang_id = $barangId,
+						barang_qty = $qty,
+						barang_harga_beli = $harga,
+						pembelian_diskon = $diskon,
+						pembelian_subtotal = $subtotal,
+						pembelian_cabang = ".intval($data['invoice_pembelian_cabang']).",
+						pembelian_date = CURDATE()";
 
-	$pembelian_invoice2  = $data['pembelian_invoice2'];
-	$invoice_tgl         = date("d F Y g:i:s a");
-	$invoice_supplier    = $data['invoice_supplier'];
-	$invoice_total       = $data['invoice_total'];
-	$invoice_bayar       = $data['angka1'];
-	$invoice_kembali     = $invoice_bayar - $invoice_total;
-	$invoice_date        = date("Y-m-d");
-	$pembelian_date      = $data['pembelian_date'];
-	$invoice_pembelian_number_delete = $data['invoice_pembelian_number_delete'];
-	$pembelian_invoice_parent2       = $data['pembelian_invoice_parent2'];
-	$invoice_hutang				 	 = $data['invoice_hutang'];
-	if ( $invoice_hutang == 1 ) {
-		$invoice_hutang_dp = $invoice_bayar;
-	} else {
-		$invoice_hutang_dp = 0;
-	}
-	$invoice_hutang_jatuh_tempo	    = $data['invoice_hutang_jatuh_tempo'];
-	$invoice_hutang_lunas			= $data['invoice_hutang_lunas'];
-	$pembelian_cabang				= $data['pembelian_cabang'];
-
-	$jumlah = count($keranjang_id_kasir);
-
-	// Cek No. Invoice
-	$invoice_cek = mysqli_num_rows(mysqli_query($conn, "select * from invoice_pembelian where pembelian_invoice = '$pembelian_invoice2' && invoice_pembelian_cabang = '$invoice_pembelian_cabang' "));
-
-	if ( $invoice_cek > 0 ) {
-		echo "
-			<script>
-				alert('No. Invoice Pembelian Sudah Digunakan Sebelumnya !!');
-			</script>
-		";
-	} else {
-		// query insert invoice
-		$query1 = "INSERT INTO invoice_pembelian VALUES ('', '$pembelian_invoice2', '$pembelian_invoice_parent2', '$invoice_tgl', '$invoice_supplier', '$invoice_total', '$invoice_bayar', '$invoice_kembali', '$kik', '$invoice_date', ' ', ' ', '$invoice_total', '$invoice_bayar', '$invoice_kembali', '$invoice_hutang', '$invoice_hutang_dp', '$invoice_hutang_jatuh_tempo', '$invoice_hutang_lunas', '$invoice_pembelian_cabang')";
-		// var_dump($query1); die();
-		mysqli_query($conn, $query1);
-
-
-		for( $x=0; $x<$jumlah; $x++ ){
-			$query = "INSERT INTO pembelian VALUES ('', '$id[$x]', '$id[$x]', '$keranjang_qty[$x]', '$keranjang_id_kasir[$x]', '$pembelian_invoice[$x]', '$pembelian_invoice_parent[$x]', '$pembelian_date[$x]', '$keranjang_qty[$x]', '$keranjang_qty[$x]', '$barang_harga_beli[$x]', '$pembelian_cabang[$x]')";
-			mysqli_query($conn, $query);
-
-			// Mencari Rata-rata Pembelian
-			$hargaBeli= mysqli_query($conn, "SELECT AVG(barang_harga_beli) AS average FROM pembelian WHERE barang_id = $id[$x]");
-            $hargaBeli = mysqli_fetch_assoc($hargaBeli);
-            $hargaBeli = ceil($hargaBeli['average']);
-
-            // Edit Data
-			$query2 = "UPDATE barang SET 
-						barang_harga_beli     = '$hargaBeli'
-						WHERE barang_id       = $id[$x]
-				";
-
-			mysqli_query($conn, $query2);
-		}
-		
-
-		mysqli_query( $conn, "DELETE FROM keranjang_pembelian WHERE keranjang_id_kasir = $kik");
-		mysqli_query( $conn, "DELETE FROM invoice_pembelian_number WHERE invoice_pembelian_number_delete = $invoice_pembelian_number_delete");
-		return mysqli_affected_rows($conn);
-	}
+			$resultDetail = mysqli_query($conn, $queryDetail);
+			if (!$resultDetail) {
+				throw new Exception("Gagal insert detail item $barangId: " . mysqli_error($conn) . " Query: " . $queryDetail);
+			}
+            
+            // Update stock
+            $queryStock = "UPDATE barang SET 
+                          barang_stock = barang_stock + $qty 
+                          WHERE barang_id = $barangId";
+                          
+            $resultStock = mysqli_query($conn, $queryStock);
+            if (!$resultStock) {
+                throw new Exception("Gagal update stock barang $barangId: " . mysqli_error($conn));
+            }
+            
+            // Insert stock history
+            // $queryHistory = "INSERT INTO stock_history SET 
+            //                 barang_id = $barangId,
+            //                 qty = $qty,
+            //                 jenis_transaksi = 'pembelian',
+            //                 no_transaksi = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
+            //                 tanggal = NOW(),
+            //                 cabang = ".intval($data['invoice_pembelian_cabang']);
+                            
+            // $resultHistory = mysqli_query($conn, $queryHistory);
+            // if (!$resultHistory) {
+            //     throw new Exception("Gagal insert history barang $barangId: " . mysqli_error($conn));
+            // }
+        }
+        
+        // 3. Clear keranjang
+        $queryKeranjang = "DELETE FROM keranjang_pembelian 
+                          WHERE keranjang_id_kasir = ".intval($_SESSION['user_id'])." 
+                          AND keranjang_cabang = ".intval($data['invoice_pembelian_cabang']);
+                          
+        $resultKeranjang = mysqli_query($conn, $queryKeranjang);
+        if (!$resultKeranjang) {
+            throw new Exception("Gagal hapus keranjang: " . mysqli_error($conn));
+        }
+        
+        // 4. Delete invoice number temporary
+        if (isset($data['invoice_pembelian_number_delete'])) {
+            $queryDeleteTemp = "DELETE FROM invoice_pembelian_number 
+                               WHERE invoice_pembelian_number_parent = '".mysqli_real_escape_string($conn, $data['invoice_pembelian_number_delete'])."'
+                               AND invoice_pembelian_number_user = ".intval($_SESSION['user_id']);
+            mysqli_query($conn, $queryDeleteTemp);
+        }
+        
+        // Commit transaction
+        mysqli_commit($conn);
+        mysqli_autocommit($conn, TRUE);
+        
+        // Log success
+        writeLog("Transaksi berhasil: Invoice #".$data['pembelian_invoice2']." Total: Rp.".number_format($grandTotal, 0, ',', '.'));
+        
+        return $invoiceId;
+        
+    } catch (Exception $e) {
+        // Rollback transaction
+        mysqli_rollback($conn);
+        mysqli_autocommit($conn, TRUE);
+        
+        // Log error
+        writeLog("Transaksi gagal: " . $e->getMessage());
+        
+        return false;
+    }
 }
 
 // ======================================== Pembelian Edit ================================ //

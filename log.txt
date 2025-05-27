@@ -1,0 +1,8 @@
+[2025-05-26 09:42:08] TRY ADD: NAMA LENGKAP, WA: 012345654561, Email: email@email.com
+[2025-05-26 09:42:08] SUCCESS: Customer 'NAMA LENGKAP' berhasil ditambahkan.
+[2025-05-26 09:47:40] TRY ADD: dona doni, WA: 216753761221, Email: enter@enter.com
+[2025-05-26 09:47:40] DUPLICATE: 216753761221 sudah ada
+[2025-05-26 09:48:17] TRY ADD: Sudia, WA: 2102190309291, Email: 
+[2025-05-26 09:48:17] SUCCESS: Customer 'Sudia' berhasil ditambahkan.
+[2025-05-27 09:47:24] TRY ADD: RANANA, WA: 21321312141212, Email: 
+[2025-05-27 09:47:24] SUCCESS: Customer 'RANANA' berhasil ditambahkan.
