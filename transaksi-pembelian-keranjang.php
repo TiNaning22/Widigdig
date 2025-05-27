@@ -69,7 +69,7 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                         <th>Satuan</th>
                         <th>Harga Beli</th>
                         <th style="text-align: center;">QTY</th>
-                        <th>Diskon</th>
+                        <th>Diskon (%)</th>
                         <th style="width: 15%;">Sub Total</th>
                         <th style="text-align: center;">Aksi</th>
                     </tr>
@@ -77,8 +77,9 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                 <tbody>
                     <?php 
                     $i = 1; 
-                    $total = 0;
+                    $subtotalSebelumDiskon = 0;
                     $totalDiskon = 0;
+                    $totalSetelahDiskon = 0;
                     $hargaBeliTotal = 0;
                     ?>
                     
@@ -92,16 +93,18 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                  WHERE b.barang_id = '$bik'";
                         $brg = mysqli_fetch_array(mysqli_query($conn, $query));
                         
-                        $sub_total = $row['keranjang_harga'] * $row['keranjang_qty'];
-                        $diskon = $row['keranjang_diskon'] ?? 0;
-                        $sub_total_setelah_diskon = $sub_total * (1 - ($diskon/100));
+                        $subtotal = $row['keranjang_harga'] * $row['keranjang_qty'];
+                        $diskonPersen = $row['keranjang_diskon'] ?? 0;
+                        $diskonNominal = $subtotal * ($diskonPersen / 100);
+                        $subtotalSetelahDiskon = $subtotal - $diskonNominal;
                         
                         if ($row['keranjang_id_kasir'] === $_SESSION['user_id']) {
-                            $total += $sub_total_setelah_diskon;
-                            $totalDiskon += $sub_total - $sub_total_setelah_diskon;
-                            $hargaBeliTotal += $row['keranjang_harga_beli'] * $row['keranjang_qty'];
+                            $subtotalSebelumDiskon += $subtotal;
+                            $totalDiskon += $diskonNominal;
+                            $totalSetelahDiskon += $subtotalSetelahDiskon;
+                            $hargaBeliTotal += $brg['barang_harga_beli'] * $row['keranjang_qty'];
                     ?>
-                    <tr>
+                    <tr data-keranjang-id="<?= $row['keranjang_id']; ?>">
                         <td><?= $i; ?></td>
                         <td><?= $row['keranjang_nama']; ?></td>
                         <td>
@@ -120,11 +123,11 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                             </select>
                         </td>
                         <td>
-                            Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?>
+                            <span class="harga-text" data-harga="<?= $row['keranjang_harga']; ?>" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
+                                Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?>
+                            </span>
                             <span class="keranjang-right">
-                                <!-- FIX: Tambahkan class yang benar -->
-                                <button class="btn-success edit-harga-beli" 
-                                        data-id="<?= $row['keranjang_id']; ?>">
+                                <button class="btn-success edit-harga-beli" data-id="<?= $row['keranjang_id']; ?>">
                                     <i class="fa fa-edit"></i>
                                 </button>    
                             </span>
@@ -132,7 +135,8 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                         <td style="text-align: center; width: 11%;">
                             <form role="form" action="" method="post">
                                 <input type="hidden" name="keranjang_id" value="<?= $row['keranjang_id']; ?>">
-                                <input type="number" min="1" name="keranjang_qty" value="<?= $row['keranjang_qty'] ?>" onkeypress="return hanyaAngka(event)" style="text-align: center; width: 60%;"> 
+                                <input type="number" min="1" name="keranjang_qty" value="<?= $row['keranjang_qty'] ?>" 
+                                       class="qty-input" onkeypress="return hanyaAngka(event)" style="text-align: center; width: 60%;"> 
                                 <input type="hidden" name="stock_brg" value="<?= $brg['barang_stock']; ?>">
                                 <button class="btn-primary" type="submit" name="update">
                                     <i class="fa fa-refresh"></i>
@@ -140,9 +144,11 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                             </form>
                         </td>
                         <td>
-                            <input type="number" name="diskon[]" class="form-control diskon-input" value="<?= $diskon; ?>" placeholder="Diskon (%)">
+                            <input type="number" name="diskon_item" class="form-control diskon-input" 
+                                   value="<?= $diskonPersen; ?>" placeholder="0" min="0" max="100" step="0.01"
+                                   data-keranjang-id="<?= $row['keranjang_id']; ?>">
                         </td>
-                        <td>Rp. <?= number_format($sub_total_setelah_diskon, 0, ',', '.'); ?></td>
+                        <td class="subtotal">Rp. <?= number_format($subtotalSetelahDiskon, 0, ',', '.'); ?></td>
                         <td style="text-align: center; width: 6%;">
                             <a href="transaksi-pembelian-delete?id=<?= $row['keranjang_id']; ?>&r=<?= $r; ?>" title="Delete" onclick="return confirm('Yakin dihapus?')">
                                 <button class="btn btn-danger" type="submit" name="hapus">
@@ -158,9 +164,8 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
             </table>
         </div>
 
-        <!-- Rest of the form content remains the same -->
         <div class="btn-transaksi">
-            <form role="form" action="" method="POST">
+            <form role="form" action="" method="POST" id="form-transaksi">
                 <div class="row">
                     <div class="col-md-6 col-lg-7">
                         <div class="filter-customer">
@@ -204,32 +209,47 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                             <table class="table">
                                 <tr>
                                     <td><b>Subtotal</b></td>
-                                    <td class="table-nominal">
-                                        Rp. <?= number_format($total, 0, ',', '.'); ?>
+                                    <td class="table-nominal" id="subtotal-display">
+                                        Rp. <?= number_format($subtotalSebelumDiskon, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><b>Diskon</b></td>
-                                    <td class="table-nominal">
+                                    <td class="table-nominal" id="diskon-display">
                                         Rp. <?= number_format($totalDiskon, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td><b>Setelah Diskon</b></td>
+                                    <td class="table-nominal" id="setelah-diskon-display">
+                                        Rp. <?= number_format($totalSetelahDiskon, 0, ',', '.'); ?>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td><b>PPN (11%)</b></td>
-                                    <td class="table-nominal">
-                                        Rp. <?= number_format($total * 0.11, 0, ',', '.'); ?>
+                                    <td class="table-nominal" id="ppn-display">
+                                        Rp. <?= number_format($totalSetelahDiskon * 0.11, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><b>TOTAL</b></td>
-                                    <td class="table-nominal">
-                                        Rp. <?= number_format($total * 1.11, 0, ',', '.'); ?>
+                                    <td class="table-nominal" id="total-display">
+                                        Rp. <?= number_format($totalSetelahDiskon * 1.11, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><b>Margin Kotor</b></td>
-                                    <td class="table-nominal">
-                                        Rp. <?= number_format(($total - $hargaBeliTotal), 0, ',', '.'); ?>
+                                    <td class="table-nominal" id="margin-display">
+                                        Rp. <?= number_format(($totalSetelahDiskon - $hargaBeliTotal), 0, ',', '.'); ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Margin (%)</b></td>
+                                    <td class="table-nominal" id="margin-persen-display">
+                                        <?php 
+                                        $marginPersen = ($hargaBeliTotal > 0) ? (($totalSetelahDiskon - $hargaBeliTotal) / $hargaBeliTotal) * 100 : 0;
+                                        echo number_format($marginPersen, 2, ',', '.') . '%';
+                                        ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -259,23 +279,24 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                 <tr>
                                     <td></td>
                                     <td>
-                                        <?php 
-                                        foreach ($keranjang as $stk) : 
+                                        <!-- Hidden inputs untuk data transaksi -->
+                                        <?php foreach ($keranjang as $stk) : 
                                             if ($stk['keranjang_id_kasir'] === $_SESSION['user_id']) {
                                         ?>
                                             <input type="hidden" name="barang_ids[]" value="<?= $stk['barang_id']; ?>">
                                             <input type="hidden" name="keranjang_qty[]" value="<?= $stk['keranjang_qty'] ?>"> 
                                             <input type="hidden" name="keranjang_id_kasir[]" value="<?= $_SESSION['user_id']; ?>">
-                                            <input type="hidden" name="kik" value="<?= $_SESSION['user_id']; ?>">
                                             <input type="hidden" name="pembelian_invoice[]" value="<?= $in; ?>">
                                             <input type="hidden" name="pembelian_invoice_parent[]" value="<?= $inDelete; ?>">
                                             <input type="hidden" name="pembelian_date[]" value="<?= date("Y-m-d") ?>">
                                             <input type="hidden" name="barang_harga_beli[]" value="<?= $stk['keranjang_harga']; ?>">
                                             <input type="hidden" name="pembelian_cabang[]" value="<?= $sessionCabang; ?>">
-                                            <input type="hidden" name="diskon_value[]" value="<?= $row['keranjang_diskon'] ?? 0; ?>">
+                                            <input type="hidden" name="diskon_item_value[]" value="<?= $stk['keranjang_diskon'] ?? 0; ?>" class="diskon-hidden">
                                         <?php } ?>
                                         <?php endforeach; ?>  
                                         
+                                        <!-- Data invoice -->
+                                        <input type="hidden" name="kik" value="<?= $_SESSION['user_id']; ?>">
                                         <input type="hidden" name="pembelian_invoice2" value="<?= $in; ?>">
                                         <input type="hidden" name="invoice_pembelian_number_delete" value="<?= $inDelete; ?>">
                                         <input type="hidden" name="pembelian_invoice_parent2" value="<?= $inDelete; ?>">
@@ -283,6 +304,18 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                         <input type="hidden" name="invoice_hutang_lunas" value="0">
                                         <input type="hidden" name="invoice_pembelian_cabang" value="<?= $sessionCabang; ?>">
                                         <input type="hidden" name="ppn_value" value="11">
+                                        
+                                        <!-- Total calculations -->
+                                        <input type="hidden" name="subtotal_sebelum_diskon" id="subtotal-hidden" value="<?= $subtotalSebelumDiskon; ?>">
+                                        <input type="hidden" name="total_diskon" id="total-diskon-hidden" value="<?= $totalDiskon; ?>">
+                                        <input type="hidden" name="total_setelah_diskon" id="total-setelah-diskon-hidden" value="<?= $totalSetelahDiskon; ?>">
+                                        <input type="hidden" name="total_ppn" id="total-ppn-hidden" value="<?= $totalSetelahDiskon * 0.11; ?>">
+                                        <input type="hidden" name="grand_total" id="grand-total-hidden" value="<?= $totalSetelahDiskon * 1.11; ?>">
+                                        
+                                        <!-- Margin calculations -->
+                                        <input type="hidden" name="margin_kotor" id="margin-kotor-hidden" value="<?= $totalSetelahDiskon - $hargaBeliTotal; ?>">
+                                        <input type="hidden" name="margin_persen" id="margin-persen-hidden" value="<?= $marginPersen; ?>">
+                                        <input type="hidden" name="harga_beli_total" id="harga-beli-total-hidden" value="<?= $hargaBeliTotal; ?>">
                                         
                                         <div class="payment">
                                             <?php  
@@ -320,8 +353,7 @@ $(function () {
         alert("Harga Beli Masih ada yang bernilai kosong (Rp.0) !! Segera Update Harga Pembelian Barang per Produk ..");
     });
 
-    // Event handler untuk edit invoice
-    $(document).on('click', '.invoice-edit-btn', function(e) {
+        $(document).on('click', '.invoice-edit-btn', function(e) {
         e.preventDefault();
         var invoiceId = $(this).data('id');
         console.log('Invoice ID:', invoiceId);
@@ -422,55 +454,120 @@ $(function () {
         });
     });
 
-    // Konversi Satuan
-    $(document).on('change', '.satuan-pilihan', function() {
-        var selectedOption = $(this).find('option:selected');
-        var konversi = selectedOption.data('konversi');
-        var row = $(this).closest('tr');
+    // Fungsi untuk menghitung dan update subtotal per item
+    function hitungSubtotalItem(row) {
+        var qty = parseFloat(row.find('.qty-input').val()) || 0;
+        var harga = parseFloat(row.find('.harga-text').data('harga')) || 0;
+        var diskonPersen = parseFloat(row.find('.diskon-input').val()) || 0;
         
-        row.find('.qty-input').attr('data-konversi', konversi);
-        hitungSubtotal(row);
-    });
-
-    // Event handler untuk input bayar - auto calculate kembalian
-    $(document).on('keyup', '#angka1', function() {
-        hitung2();
-    });
-
-    // Hitung Subtotal
-    function hitungSubtotal(row) {
-        var qty = parseFloat(row.find('input[name="keranjang_qty"]').val()) || 0;
-        var konversi = parseFloat(row.find('.satuan-pilihan option:selected').data('konversi')) || 1;
-        var harga = parseFloat(row.find('.harga-input').val()) || 0;
-        var diskon = parseFloat(row.find('.diskon-input').val()) || 0;
+        var subtotal = qty * harga;
+        var diskonNominal = subtotal * (diskonPersen / 100);
+        var subtotalSetelahDiskon = subtotal - diskonNominal;
         
-        var qtySebenarnya = qty * konversi;
-        var subtotal = qtySebenarnya * harga * (1 - (diskon/100));
+        row.find('.subtotal').text('Rp. ' + subtotalSetelahDiskon.toLocaleString('id-ID'));
         
-        row.find('.subtotal').text(formatRupiah(subtotal));
-        hitungTotal();
-    }
-
-    // Format Rupiah
-    function formatRupiah(angka) {
-        return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    // Hitung Total
-    function hitungTotal() {
-        var total = 0;
-        $('tbody tr').each(function() {
-            var subtotalText = $(this).find('.subtotal').text().replace('Rp ', '').replace(/\./g, '');
-            total += parseFloat(subtotalText) || 0;
+        // Update hidden input untuk diskon
+        var keranjangId = row.find('.diskon-input').data('keranjang-id');
+        $('input[name="diskon_item_value[]"]').each(function(index) {
+            if ($(this).closest('tr').length === 0) { // Hidden input tidak dalam tr
+                var currentIndex = $('input[name="diskon_item_value[]"]').index(this);
+                var targetRow = $('tr[data-keranjang-id]').eq(currentIndex);
+                if (targetRow.data('keranjang-id') == keranjangId) {
+                    $(this).val(diskonPersen);
+                }
+            }
         });
         
-        $('#total-transaksi').text(formatRupiah(total));
-        $('#ppn-transaksi').text(formatRupiah(total * 0.11));
-        $('#grand-total').text(formatRupiah(total * 1.11));
+        hitungTotalKeseluruhan();
     }
+
+    // Fungsi untuk menghitung total keseluruhan
+    function hitungTotalKeseluruhan() {
+        var subtotalSebelumDiskon = 0;
+        var totalDiskon = 0;
+        var totalSetelahDiskon = 0;
+        var hargaBeliTotal = 0;
+        
+        $('tbody tr').each(function() {
+            var qty = parseFloat($(this).find('.qty-input').val()) || 0;
+            var harga = parseFloat($(this).find('.harga-text').data('harga')) || 0;
+            var diskonPersen = parseFloat($(this).find('.diskon-input').val()) || 0;
+            var hargaBeli = parseFloat($(this).find('.harga-text').data('harga-beli')) || 0;
+            
+            var subtotal = qty * harga;
+            var diskonNominal = subtotal * (diskonPersen / 100);
+            var subtotalItem = subtotal - diskonNominal;
+            
+            subtotalSebelumDiskon += subtotal;
+            totalDiskon += diskonNominal;
+            totalSetelahDiskon += subtotalItem;
+            hargaBeliTotal += (qty * hargaBeli);
+        });
+        
+        var totalPPN = totalSetelahDiskon * 0.11;
+        var grandTotal = totalSetelahDiskon + totalPPN;
+        var marginKotor = totalSetelahDiskon - hargaBeliTotal;
+        var marginPersen = (hargaBeliTotal > 0) ? (marginKotor / hargaBeliTotal) * 100 : 0;
+        
+        // Update tampilan
+        $('#subtotal-display').text('Rp. ' + subtotalSebelumDiskon.toLocaleString('id-ID'));
+        $('#diskon-display').text('Rp. ' + totalDiskon.toLocaleString('id-ID'));
+        $('#setelah-diskon-display').text('Rp. ' + totalSetelahDiskon.toLocaleString('id-ID'));
+        $('#ppn-display').text('Rp. ' + totalPPN.toLocaleString('id-ID'));
+        $('#total-display').text('Rp. ' + grandTotal.toLocaleString('id-ID'));
+        $('#margin-display').text('Rp. ' + marginKotor.toLocaleString('id-ID'));
+        $('#margin-persen-display').text(marginPersen.toFixed(2) + '%');
+        
+        // Update hidden inputs
+        $('#subtotal-hidden').val(subtotalSebelumDiskon);
+        $('#total-diskon-hidden').val(totalDiskon);
+        $('#total-setelah-diskon-hidden').val(totalSetelahDiskon);
+        $('#total-ppn-hidden').val(totalPPN);
+        $('#grand-total-hidden').val(grandTotal);
+        $('#margin-kotor-hidden').val(marginKotor);
+        $('#margin-persen-hidden').val(marginPersen);
+        $('#harga-beli-total-hidden').val(hargaBeliTotal);
+        
+        // Update nilai b2 untuk perhitungan kembalian
+        $('.b2').val(grandTotal);
+        hitung2(); // Recalculate kembalian
+    }
+
+    // Event listener untuk perubahan diskon
+    $(document).on('input change', '.diskon-input', function() {
+        var row = $(this).closest('tr');
+        var keranjangId = $(this).data('keranjang-id');
+        var diskonValue = $(this).val();
+        
+        // Update diskon ke database via AJAX
+        $.ajax({
+            url: 'update-diskon-keranjang.php',
+            type: 'POST',
+            data: {
+                keranjang_id: keranjangId,
+                diskon: diskonValue
+            },
+            success: function(response) {
+                console.log('Diskon updated:', response);
+            }
+        });
+        
+        hitungSubtotalItem(row);
+    });
+
+    // Event listener untuk perubahan qty
+    $(document).on('input change', '.qty-input', function() {
+        hitungSubtotalItem($(this).closest('tr'));
+    });
+
+    // Hitung total awal saat halaman dimuat
+    hitungTotalKeseluruhan();
+    
+    // Set nilai awal untuk b2 (total yang harus dibayar)
+    var grandTotal = parseFloat($('#grand-total-hidden').val()) || 0;
+    $('.b2').val(grandTotal);
 });
 
-// Function untuk validasi hanya angka (untuk input qty)
 function hanyaAngka(evt) {
     var charCode = (evt.which) ? evt.which : event.keyCode;
     if (charCode > 31 && (charCode < 48 || charCode > 57))
@@ -478,61 +575,22 @@ function hanyaAngka(evt) {
     return true;
 }
 
-// Function untuk validasi hanya angka dengan titik untuk format ribuan (untuk input bayar)
 function hanyaAngka1(evt) {
     var charCode = (evt.which) ? evt.which : event.keyCode;
-    // Allow: backspace, delete, tab, escape, enter, decimal point
-    if (charCode == 46 || charCode == 8 || charCode == 9 || charCode == 27 || charCode == 13 ||
-        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-        (charCode == 65 && (evt.ctrlKey === true || evt.metaKey === true)) ||
-        (charCode == 67 && (evt.ctrlKey === true || evt.metaKey === true)) ||
-        (charCode == 86 && (evt.ctrlKey === true || evt.metaKey === true)) ||
-        (charCode == 88 && (evt.ctrlKey === true || evt.metaKey === true)) ||
-        // Allow: home, end, left, right, down, up
-        (charCode >= 35 && charCode <= 40)) {
-        return true;
-    }
-    // Ensure that it is a number and stop the keypress
-    if ((evt.shiftKey || (charCode < 48 || charCode > 57)) && (charCode < 96 || charCode > 105)) {
+    if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 46)
         return false;
-    }
     return true;
 }
 
-// Function untuk menghitung kembalian/sisa hutang
 function hitung2() {
-    // Ambil total yang harus dibayar (termasuk PPN)
-    var totalText = $('.table-nominal').eq(3).text(); // Ambil total dari baris "TOTAL"
-    var totalBayar = parseFloat(totalText.replace(/[^\d]/g, '')) || 0;
+    var bayar = parseFloat($(".a2").val().replace(/\./g, '')) || 0;
+    var total = parseFloat($('#grand-total-hidden').val()) || 0;
+    var kembalian = bayar - total;
     
-    // Ambil jumlah yang dibayar
-    var bayar = parseFloat($("#angka1").val().replace(/\./g, '')) || 0;
-    
-    // Hitung selisih
-    var selisih = bayar - totalBayar;
-    
-    // Format dan tampilkan hasil
-    if (selisih >= 0) {
-        // Jika bayar >= total, tampilkan kembalian
-        $("#hasil").val(formatAngka(selisih));
-    } else {
-        // Jika bayar < total, tampilkan sisa hutang (negatif)
-        $("#hasil").val(formatAngka(Math.abs(selisih)));
+    if (kembalian < 0) {
+        kembalian = Math.abs(kembalian); // Untuk hutang, tampilkan nilai positif
     }
+    
+    $(".c2").val(kembalian.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
 }
-
-// Function untuk format angka dengan titik ribuan
-function formatAngka(angka) {
-    return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-// Auto format input bayar dengan titik ribuan
-$(document).on('keyup', '#angka1', function() {
-    var value = $(this).val().replace(/\./g, '');
-    if (value) {
-        $(this).val(formatAngka(value));
-    }
-    hitung2();
-});
-
 </script>
