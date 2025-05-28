@@ -98,6 +98,8 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                         $diskonPersen = $row['keranjang_diskon'] ?? 0;
                         $diskonNominal = $subtotal * ($diskonPersen / 100);
                         $subtotalSetelahDiskon = $subtotal - $diskonNominal;
+                        // $marginKotor = $totalSetelahDiskon - $hargaBeliTotal;
+                        // $marginPersen = ($hargaBeliTotal > 0) ? ($marginKotor / $hargaBeliTotal) * 100 : 0;
                         
                         if ($row['keranjang_id_kasir'] === $_SESSION['user_id']) {
                             $subtotalSebelumDiskon += $subtotal;
@@ -290,7 +292,11 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                             <input type="hidden" name="pembelian_date[]" value="<?= date("Y-m-d") ?>">
                                             <input type="hidden" name="barang_harga_beli[]" value="<?= $stk['keranjang_harga']; ?>">
                                             <input type="hidden" name="pembelian_cabang[]" value="<?= $sessionCabang; ?>">
-                                            <input type="hidden" name="diskon_item_value[]" value="<?= $stk['keranjang_diskon'] ?? 0; ?>" class="diskon-hidden">
+                                            <input type="hidden" 
+                                                name="diskon_item_value[]" 
+                                                value="<?= $stk['keranjang_diskon'] ?? 0; ?>" 
+                                                class="diskon-hidden"
+                                                data-keranjang-id="<?= $stk['keranjang_id']; ?>">
                                         <?php } ?>
                                         <?php endforeach; ?>  
                                         
@@ -544,7 +550,7 @@ $(function () {
         
         // Update diskon ke database via AJAX
         $.ajax({
-            url: 'update-diskon-keranjang.php',
+            url: 'update-discount-keranjang.php',
             type: 'POST',
             data: {
                 keranjang_id: keranjangId,
