@@ -4,6 +4,7 @@ include '_header-artibut.php';
 $r = $_GET['r'];
 
 $userId = $_SESSION['user_id'];
+
 $keranjang = query("SELECT * FROM keranjang_pembelian WHERE keranjang_id_kasir = $userId AND keranjang_cabang = $sessionCabang ORDER BY keranjang_id ASC");
 
 // Generate invoice number
@@ -123,8 +124,9 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                             </select>
                         </td>
                         <td>
-                            <span class="harga-text" data-harga="<?= $row['keranjang_harga']; ?>" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
-                                Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?>
+                            <span class="harga-text" data-harga="<?= $row['keranjang_harga'] ?: $brg['barang_harga_beli']; ?>" 
+                                data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
+                                Rp. <?= number_format($row['keranjang_harga'] ?: $brg['barang_harga_beli'], 0, ',', '.'); ?>
                             </span>
                             <span class="keranjang-right">
                                 <button class="btn-success edit-harga-beli" data-id="<?= $row['keranjang_id']; ?>">
@@ -240,16 +242,13 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                 <tr>
                                     <td><b>Margin Kotor</b></td>
                                     <td class="table-nominal" id="margin-display">
-                                        Rp. <?= number_format(($totalSetelahDiskon - $hargaBeliTotal), 0, ',', '.'); ?>
+                                        Rp. <?= number_format($marginKotor, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><b>Margin (%)</b></td>
                                     <td class="table-nominal" id="margin-persen-display">
-                                        <?php 
-                                        $marginPersen = ($hargaBeliTotal > 0) ? (($totalSetelahDiskon - $hargaBeliTotal) / $hargaBeliTotal) * 100 : 0;
-                                        echo number_format($marginPersen, 2, ',', '.') . '%';
-                                        ?>
+                                        <?= number_format($marginPersen, 2, ',', '.') ?>%
                                     </td>
                                 </tr>
                                 <tr>
@@ -313,7 +312,7 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                         <input type="hidden" name="grand_total" id="grand-total-hidden" value="<?= $totalSetelahDiskon * 1.11; ?>">
                                         
                                         <!-- Margin calculations -->
-                                        <input type="hidden" name="margin_kotor" id="margin-kotor-hidden" value="<?= $totalSetelahDiskon - $hargaBeliTotal; ?>">
+                                        <input type="hidden" name="margin_kotor" id="margin-kotor-hidden" value="<?= $marginKotor; ?>">
                                         <input type="hidden" name="margin_persen" id="margin-persen-hidden" value="<?= $marginPersen; ?>">
                                         <input type="hidden" name="harga_beli_total" id="harga-beli-total-hidden" value="<?= $hargaBeliTotal; ?>">
                                         
@@ -383,8 +382,12 @@ $(function () {
         e.preventDefault();
         $("#modal-id-2").modal('show');
         
+        var row = $(this).closest('tr');
+        var hargaDefault = row.find('.harga-text').data('harga-beli'); // Ambil harga beli default
+        
         $.post('transaksi-pembelian-harga-beli.php', {
-            id: $(this).data('id')
+            id: $(this).data('id'),
+            harga_default: hargaDefault // Kirim harga default ke form edit
         }, function(html) {
             $("#data-keranjang-pembelian").html(html);
         });
@@ -506,7 +509,7 @@ $(function () {
         
         var totalPPN = totalSetelahDiskon * 0.11;
         var grandTotal = totalSetelahDiskon + totalPPN;
-        var marginKotor = totalSetelahDiskon - hargaBeliTotal;
+        var marginKotor = grandTotal - hargaBeliTotal;
         var marginPersen = (hargaBeliTotal > 0) ? (marginKotor / hargaBeliTotal) * 100 : 0;
         
         // Update tampilan

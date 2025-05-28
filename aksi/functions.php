@@ -2166,7 +2166,8 @@ function updateStockPembelian($data) {
             
             // Update stock
             $queryStock = "UPDATE barang SET 
-                          barang_stock = barang_stock + $qty 
+                          barang_stock = barang_stock + $qty,
+						  barang_harga_beli = $harga
                           WHERE barang_id = $barangId";
                           
             $resultStock = mysqli_query($conn, $queryStock);
