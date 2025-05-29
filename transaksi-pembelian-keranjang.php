@@ -351,255 +351,379 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
 </div>
 
 <script>
-$(function () {
-    $('.select2bs4').select2({ theme: 'bootstrap4' });
-    
-    $(document).on('click', '.btn-disabled', function(){
-        alert("Harga Beli Masih ada yang bernilai kosong (Rp.0) !! Segera Update Harga Pembelian Barang per Produk ..");
-    });
+    $(function () {
+        $('.select2bs4').select2({ theme: 'bootstrap4' });
+        
+        $(document).on('click', '.btn-disabled', function(){
+            alert("Harga Beli Masih ada yang bernilai kosong (Rp.0) !! Segera Update Harga Pembelian Barang per Produk ..");
+        });
 
-        $(document).on('click', '.invoice-edit-btn', function(e) {
-        e.preventDefault();
-        var invoiceId = $(this).data('id');
-        console.log('Invoice ID:', invoiceId);
+            $(document).on('click', '.invoice-edit-btn', function(e) {
+            e.preventDefault();
+            var invoiceId = $(this).data('id');
+            console.log('Invoice ID:', invoiceId);
 
-        if (!invoiceId) {
-            alert('Invoice ID tidak ditemukan');
-            return;
+            if (!invoiceId) {
+                alert('Invoice ID tidak ditemukan');
+                return;
+            }
+
+            $.ajax({
+                url: 'get-invoice-data.php',
+                type: 'POST',
+                data: {id: invoiceId},
+                success: function(response) {
+                    $('#data-edit-invoice').html(response);
+                    $('#modal-edit-invoice').modal('show');
+                },
+                error: function(xhr) {
+                    alert('Gagal memuat data invoice');
+                    console.log('error:', xhr);
+                }
+            });
+        });
+
+        // Event handler untuk edit harga beli
+        $(document).on('click', '.edit-harga-beli', function(e) {
+            e.preventDefault();
+            $("#modal-id-2").modal('show');
+            
+            var row = $(this).closest('tr');
+            var hargaDefault = row.find('.harga-text').data('harga-beli'); // Ambil harga beli default
+            
+            $.post('transaksi-pembelian-harga-beli.php', {
+                id: $(this).data('id'),
+                harga_default: hargaDefault // Kirim harga default ke form edit
+            }, function(html) {
+                $("#data-keranjang-pembelian").html(html);
+            });
+        });
+
+        // Handle submit form edit invoice
+        $('#form-edit-invoice').submit(function(e) {
+            e.preventDefault();
+            
+            // Tampilkan loading
+            Swal.fire({
+                title: 'Memproses',
+                html: 'Sedang menyimpan perubahan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            $.ajax({
+                url: 'update-invoice.php',
+                type: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    Swal.close();
+                    
+                    if(response.status == 'success') {
+                        $('#modal-edit-invoice').modal('hide');
+                        Swal.fire('Sukses', response.message || 'Invoice berhasil diperbarui', 'success');
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    
+                    console.error("Error:", error);
+                    console.log("Response:", xhr.responseText);
+                    
+                    try {
+                        var errResponse = JSON.parse(xhr.responseText);
+                        Swal.fire('Error', errResponse.message || 'Terjadi kesalahan saat update', 'error');
+                    } catch(e) {
+                        Swal.fire('Error', 'Terjadi kesalahan: ' + error, 'error');
+                    }
+                }
+            });
+        });
+
+        // Handle submit form edit harga beli
+        $("#form-edit-harga-beli").submit(function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: "transaksi-pembelian-harga-beli-proses.php",
+                data: $(this).serialize(),
+                type: "post",
+                success: function(result) {
+                    var hasil = JSON.parse(result);
+                    if (hasil.hasil === "sukses") {
+                        $('#modal-id-2').modal('hide');
+                        Swal.fire('Sukses', 'Data Berhasil diupdate', 'success');
+                        location.reload();
+                    }
+                }
+            });
+        });
+
+        $(document).on('change', '.satuan-pilihan', function() {
+            var row = $(this).closest('tr');
+            var barangId = $(this).data('barangid');
+            var satuanTerpilih = $(this).val();
+            var konversiValue = $(this).find('option:selected').data('konversi');
+            var keranjangId = row.data('keranjang-id');
+            
+            console.log('Satuan berubah:', {
+                barangId: barangId,
+                satuanTerpilih: satuanTerpilih,
+                konversiValue: konversiValue,
+                keranjangId: keranjangId
+            });
+            
+            // Update harga berdasarkan satuan yang dipilih
+            updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId);
+        });
+        
+        // Fungsi untuk mengupdate harga berdasarkan satuan
+        function updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId) {
+            $.ajax({
+                url: 'get-harga-satuan.php', // File PHP untuk mengambil harga berdasarkan satuan
+                type: 'POST',
+                data: {
+                    barang_id: barangId,
+                    satuan_pilihan: satuanTerpilih,
+                    konversi: konversiValue
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Update harga display
+                        var hargaText = row.find('.harga-text');
+                        hargaText.data('harga', response.harga_konversi);
+                        hargaText.text('Rp. ' + response.harga_konversi.toLocaleString('id-ID'));
+                        
+                        // Update hidden input harga
+                        var hargaInput = $('input[name="barang_harga_beli[]"]').eq(row.index());
+                        hargaInput.val(response.harga_konversi);
+                        
+                        // Update database keranjang dengan harga dan satuan baru
+                        updateKeranjangSatuan(keranjangId, satuanTerpilih, response.harga_konversi, konversiValue);
+                        
+                        // Hitung ulang subtotal
+                        hitungSubtotalItem(row);
+                    } else {
+                        alert('Gagal mengambil harga satuan: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengambil harga satuan');
+                }
+            });
         }
-
-        $.ajax({
-            url: 'get-invoice-data.php',
-            type: 'POST',
-            data: {id: invoiceId},
-            success: function(response) {
-                $('#data-edit-invoice').html(response);
-                $('#modal-edit-invoice').modal('show');
-            },
-            error: function(xhr) {
-                alert('Gagal memuat data invoice');
-                console.log('error:', xhr);
-            }
-        });
-    });
-
-    // Event handler untuk edit harga beli
-    $(document).on('click', '.edit-harga-beli', function(e) {
-        e.preventDefault();
-        $("#modal-id-2").modal('show');
         
-        var row = $(this).closest('tr');
-        var hargaDefault = row.find('.harga-text').data('harga-beli'); // Ambil harga beli default
+        // Fungsi untuk update keranjang dengan satuan dan harga baru
+        function updateKeranjangSatuan(keranjangId, satuanPilihan, hargaKonversi, konversiValue) {
+            $.ajax({
+                url: 'update-keranjang-satuan.php',
+                type: 'POST',
+                data: {
+                    keranjang_id: keranjangId,
+                    satuan_pilihan: satuanPilihan,
+                    harga_konversi: hargaKonversi,
+                    konversi_value: konversiValue
+                },
+                success: function(response) {
+                    console.log('Keranjang updated:', response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating keranjang:', error);
+                }
+            });
+        }
         
-        $.post('transaksi-pembelian-harga-beli.php', {
-            id: $(this).data('id'),
-            harga_default: hargaDefault // Kirim harga default ke form edit
-        }, function(html) {
-            $("#data-keranjang-pembelian").html(html);
-        });
-    });
-
-    // Handle submit form edit invoice
-    $('#form-edit-invoice').submit(function(e) {
-        e.preventDefault();
+        // Fungsi untuk konversi qty berdasarkan satuan
+        function konversiQtyBerdasarkanSatuan(qtyInput, konversiValue) {
+            var qty = parseFloat(qtyInput) || 1;
+            return qty * parseFloat(konversiValue);
+        }
         
-        // Tampilkan loading
-        Swal.fire({
-            title: 'Memproses',
-            html: 'Sedang menyimpan perubahan...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        $.ajax({
-            url: 'update-invoice.php',
-            type: 'POST',
-            data: $(this).serialize(),
-            dataType: 'json',
-            success: function(response) {
-                Swal.close();
+        // Event listener untuk form submit - konversi qty sebelum submit
+        $('#form-transaksi').on('submit', function(e) {
+            // Konversi semua qty berdasarkan satuan yang dipilih
+            $('tbody tr').each(function() {
+                var row = $(this);
+                var satuanSelect = row.find('.satuan-pilihan');
+                var konversiValue = satuanSelect.find('option:selected').data('konversi') || 1;
+                var qtyInput = row.find('.qty-input');
+                var qtyOriginal = parseFloat(qtyInput.val()) || 1;
                 
-                if(response.status == 'success') {
-                    $('#modal-edit-invoice').modal('hide');
-                    Swal.fire('Sukses', response.message || 'Invoice berhasil diperbarui', 'success');
-                    location.reload();
-                } else {
-                    Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                Swal.close();
+                // Konversi qty untuk stock (qty pembelian * konversi = qty stock)
+                var qtyStock = qtyOriginal * parseFloat(konversiValue);
                 
-                console.error("Error:", error);
-                console.log("Response:", xhr.responseText);
+                // Update hidden input untuk qty yang akan disimpan ke stock
+                var qtyHidden = $('input[name="keranjang_qty[]"]').eq(row.index());
+                if (qtyHidden.length) {
+                    qtyHidden.val(qtyStock);
+                }
                 
-                try {
-                    var errResponse = JSON.parse(xhr.responseText);
-                    Swal.fire('Error', errResponse.message || 'Terjadi kesalahan saat update', 'error');
-                } catch(e) {
-                    Swal.fire('Error', 'Terjadi kesalahan: ' + error, 'error');
-                }
-            }
-        });
-    });
-
-    // Handle submit form edit harga beli
-    $("#form-edit-harga-beli").submit(function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: "transaksi-pembelian-harga-beli-proses.php",
-            data: $(this).serialize(),
-            type: "post",
-            success: function(result) {
-                var hasil = JSON.parse(result);
-                if (hasil.hasil === "sukses") {
-                    $('#modal-id-2').modal('hide');
-                    Swal.fire('Sukses', 'Data Berhasil diupdate', 'success');
-                    location.reload();
-                }
-            }
-        });
-    });
-
-    // Fungsi untuk menghitung dan update subtotal per item
-    function hitungSubtotalItem(row) {
-        var qty = parseFloat(row.find('.qty-input').val()) || 0;
-        var harga = parseFloat(row.find('.harga-text').data('harga')) || 0;
-        var diskonPersen = parseFloat(row.find('.diskon-input').val()) || 0;
-        
-        var subtotal = qty * harga;
-        var diskonNominal = subtotal * (diskonPersen / 100);
-        var subtotalSetelahDiskon = subtotal - diskonNominal;
-        
-        row.find('.subtotal').text('Rp. ' + subtotalSetelahDiskon.toLocaleString('id-ID'));
-        
-        // Update hidden input untuk diskon
-        var keranjangId = row.find('.diskon-input').data('keranjang-id');
-        $('input[name="diskon_item_value[]"]').each(function(index) {
-            if ($(this).closest('tr').length === 0) { // Hidden input tidak dalam tr
-                var currentIndex = $('input[name="diskon_item_value[]"]').index(this);
-                var targetRow = $('tr[data-keranjang-id]').eq(currentIndex);
-                if (targetRow.data('keranjang-id') == keranjangId) {
-                    $(this).val(diskonPersen);
-                }
-            }
+                console.log('Konversi qty:', {
+                    qtyOriginal: qtyOriginal,
+                    konversiValue: konversiValue,
+                    qtyStock: qtyStock
+                });
+            });
         });
         
-        hitungTotalKeseluruhan();
-    }
+        // Inisialisasi nilai awal satuan
+        $('.satuan-pilihan').each(function() {
+            var defaultKonversi = $(this).find('option:selected').data('konversi') || 1;
+            $(this).trigger('change');
+        });
 
-    // Fungsi untuk menghitung total keseluruhan
-    function hitungTotalKeseluruhan() {
-        var subtotalSebelumDiskon = 0;
-        var totalDiskon = 0;
-        var totalSetelahDiskon = 0;
-        var hargaBeliTotal = 0;
-        
-        $('tbody tr').each(function() {
-            var qty = parseFloat($(this).find('.qty-input').val()) || 0;
-            var harga = parseFloat($(this).find('.harga-text').data('harga')) || 0;
-            var diskonPersen = parseFloat($(this).find('.diskon-input').val()) || 0;
-            var hargaBeli = parseFloat($(this).find('.harga-text').data('harga-beli')) || 0;
+        // Fungsi untuk menghitung dan update subtotal per item
+        function hitungSubtotalItem(row) {
+            var qty = parseFloat(row.find('.qty-input').val()) || 0;
+            var harga = parseFloat(row.find('.harga-text').data('harga')) || 0;
+            var diskonPersen = parseFloat(row.find('.diskon-input').val()) || 0;
             
             var subtotal = qty * harga;
             var diskonNominal = subtotal * (diskonPersen / 100);
-            var subtotalItem = subtotal - diskonNominal;
+            var subtotalSetelahDiskon = subtotal - diskonNominal;
             
-            subtotalSebelumDiskon += subtotal;
-            totalDiskon += diskonNominal;
-            totalSetelahDiskon += subtotalItem;
-            hargaBeliTotal += (qty * hargaBeli);
+            row.find('.subtotal').text('Rp. ' + subtotalSetelahDiskon.toLocaleString('id-ID'));
+            
+            // Update hidden input untuk diskon
+            var keranjangId = row.find('.diskon-input').data('keranjang-id');
+            $('input[name="diskon_item_value[]"]').each(function(index) {
+                if ($(this).closest('tr').length === 0) { // Hidden input tidak dalam tr
+                    var currentIndex = $('input[name="diskon_item_value[]"]').index(this);
+                    var targetRow = $('tr[data-keranjang-id]').eq(currentIndex);
+                    if (targetRow.data('keranjang-id') == keranjangId) {
+                        $(this).val(diskonPersen);
+                    }
+                }
+            });
+            
+            hitungTotalKeseluruhan();
+        }
+
+        // Fungsi untuk menghitung total keseluruhan
+        function hitungTotalKeseluruhan() {
+            var subtotalSebelumDiskon = 0;
+            var totalDiskon = 0;
+            var totalSetelahDiskon = 0;
+            var hargaBeliTotal = 0;
+            
+            $('tbody tr').each(function() {
+                var qty = parseFloat($(this).find('.qty-input').val()) || 0;
+                var harga = parseFloat($(this).find('.harga-text').data('harga')) || 0;
+                var diskonPersen = parseFloat($(this).find('.diskon-input').val()) || 0;
+                var hargaBeli = parseFloat($(this).find('.harga-text').data('harga-beli')) || 0;
+                
+                var subtotal = qty * harga;
+                var diskonNominal = subtotal * (diskonPersen / 100);
+                var subtotalItem = subtotal - diskonNominal;
+                
+                subtotalSebelumDiskon += subtotal;
+                totalDiskon += diskonNominal;
+                totalSetelahDiskon += subtotalItem;
+                hargaBeliTotal += (qty * hargaBeli);
+            });
+            
+            var totalPPN = totalSetelahDiskon * 0.11;
+            var grandTotal = totalSetelahDiskon + totalPPN;
+            var marginKotor = grandTotal - hargaBeliTotal;
+            var marginPersen = (hargaBeliTotal > 0) ? (marginKotor / hargaBeliTotal) * 100 : 0;
+            
+            // Update tampilan
+            $('#subtotal-display').text('Rp. ' + subtotalSebelumDiskon.toLocaleString('id-ID'));
+            $('#diskon-display').text('Rp. ' + totalDiskon.toLocaleString('id-ID'));
+            $('#setelah-diskon-display').text('Rp. ' + totalSetelahDiskon.toLocaleString('id-ID'));
+            $('#ppn-display').text('Rp. ' + totalPPN.toLocaleString('id-ID'));
+            $('#total-display').text('Rp. ' + grandTotal.toLocaleString('id-ID'));
+            $('#margin-display').text('Rp. ' + marginKotor.toLocaleString('id-ID'));
+            $('#margin-persen-display').text(marginPersen.toFixed(2) + '%');
+            
+            // Update hidden inputs
+            $('#subtotal-hidden').val(subtotalSebelumDiskon);
+            $('#total-diskon-hidden').val(totalDiskon);
+            $('#total-setelah-diskon-hidden').val(totalSetelahDiskon);
+            $('#total-ppn-hidden').val(totalPPN);
+            $('#grand-total-hidden').val(grandTotal);
+            $('#margin-kotor-hidden').val(marginKotor);
+            $('#margin-persen-hidden').val(marginPersen);
+            $('#harga-beli-total-hidden').val(hargaBeliTotal);
+            
+            // Update nilai b2 untuk perhitungan kembalian
+            $('.b2').val(grandTotal);
+            hitung2(); // Recalculate kembalian
+        }
+
+        // Event listener untuk perubahan diskon
+        $(document).on('input change', '.diskon-input', function() {
+            var row = $(this).closest('tr');
+            var keranjangId = $(this).data('keranjang-id');
+            var diskonValue = $(this).val();
+            
+            // Update diskon ke database via AJAX
+            $.ajax({
+                url: 'update-discount-keranjang.php',
+                type: 'POST',
+                data: {
+                    keranjang_id: keranjangId,
+                    diskon: diskonValue
+                },
+                success: function(response) {
+                    console.log('Diskon updated:', response);
+                }
+            });
+            
+            hitungSubtotalItem(row);
         });
+
+        // Event listener untuk perubahan qty
+        $(document).on('input change', '.qty-input', function() {
+            hitungSubtotalItem($(this).closest('tr'));
+        });
+
+        // Hitung total awal saat halaman dimuat
+        hitungTotalKeseluruhan();
         
-        var totalPPN = totalSetelahDiskon * 0.11;
-        var grandTotal = totalSetelahDiskon + totalPPN;
-        var marginKotor = grandTotal - hargaBeliTotal;
-        var marginPersen = (hargaBeliTotal > 0) ? (marginKotor / hargaBeliTotal) * 100 : 0;
-        
-        // Update tampilan
-        $('#subtotal-display').text('Rp. ' + subtotalSebelumDiskon.toLocaleString('id-ID'));
-        $('#diskon-display').text('Rp. ' + totalDiskon.toLocaleString('id-ID'));
-        $('#setelah-diskon-display').text('Rp. ' + totalSetelahDiskon.toLocaleString('id-ID'));
-        $('#ppn-display').text('Rp. ' + totalPPN.toLocaleString('id-ID'));
-        $('#total-display').text('Rp. ' + grandTotal.toLocaleString('id-ID'));
-        $('#margin-display').text('Rp. ' + marginKotor.toLocaleString('id-ID'));
-        $('#margin-persen-display').text(marginPersen.toFixed(2) + '%');
-        
-        // Update hidden inputs
-        $('#subtotal-hidden').val(subtotalSebelumDiskon);
-        $('#total-diskon-hidden').val(totalDiskon);
-        $('#total-setelah-diskon-hidden').val(totalSetelahDiskon);
-        $('#total-ppn-hidden').val(totalPPN);
-        $('#grand-total-hidden').val(grandTotal);
-        $('#margin-kotor-hidden').val(marginKotor);
-        $('#margin-persen-hidden').val(marginPersen);
-        $('#harga-beli-total-hidden').val(hargaBeliTotal);
-        
-        // Update nilai b2 untuk perhitungan kembalian
+        // Set nilai awal untuk b2 (total yang harus dibayar)
+        var grandTotal = parseFloat($('#grand-total-hidden').val()) || 0;
         $('.b2').val(grandTotal);
-        hitung2(); // Recalculate kembalian
-    }
-
-    // Event listener untuk perubahan diskon
-    $(document).on('input change', '.diskon-input', function() {
-        var row = $(this).closest('tr');
-        var keranjangId = $(this).data('keranjang-id');
-        var diskonValue = $(this).val();
-        
-        // Update diskon ke database via AJAX
-        $.ajax({
-            url: 'update-discount-keranjang.php',
-            type: 'POST',
-            data: {
-                keranjang_id: keranjangId,
-                diskon: diskonValue
-            },
-            success: function(response) {
-                console.log('Diskon updated:', response);
-            }
-        });
-        
-        hitungSubtotalItem(row);
     });
 
-    // Event listener untuk perubahan qty
-    $(document).on('input change', '.qty-input', function() {
-        hitungSubtotalItem($(this).closest('tr'));
-    });
-
-    // Hitung total awal saat halaman dimuat
-    hitungTotalKeseluruhan();
-    
-    // Set nilai awal untuk b2 (total yang harus dibayar)
-    var grandTotal = parseFloat($('#grand-total-hidden').val()) || 0;
-    $('.b2').val(grandTotal);
-});
-
-function hanyaAngka(evt) {
-    var charCode = (evt.which) ? evt.which : event.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57))
-        return false;
-    return true;
-}
-
-function hanyaAngka1(evt) {
-    var charCode = (evt.which) ? evt.which : event.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 46)
-        return false;
-    return true;
-}
-
-function hitung2() {
-    var bayar = parseFloat($(".a2").val().replace(/\./g, '')) || 0;
-    var total = parseFloat($('#grand-total-hidden').val()) || 0;
-    var kembalian = bayar - total;
-    
-    if (kembalian < 0) {
-        kembalian = Math.abs(kembalian); // Untuk hutang, tampilkan nilai positif
+    function hanyaAngka(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
     }
-    
-    $(".c2").val(kembalian.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
-}
+
+    function hanyaAngka1(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 46)
+            return false;
+        return true;
+    }
+
+    function hitung2() {
+        var bayar = parseFloat($(".a2").val().replace(/\./g, '')) || 0;
+        var total = parseFloat($('#grand-total-hidden').val()) || 0;
+        var kembalian = bayar - total;
+        
+        if (kembalian < 0) {
+            kembalian = Math.abs(kembalian); // Untuk hutang, tampilkan nilai positif
+        }
+        
+        $(".c2").val(kembalian.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+    }
+
+    function formatRupiah(angka) {
+        return 'Rp. ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Fungsi untuk menghitung harga per satuan terkecil
+    function hitungHargaPerSatuanTerkecil(hargaBeli, konversiValue) {
+        return parseFloat(hargaBeli) / parseFloat(konversiValue);
+    }
 </script>

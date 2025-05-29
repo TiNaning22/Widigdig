@@ -2002,7 +2002,30 @@ function tambahKeranjangPembelianBarcode($data) {
 
 		} else {
 			// query insert data
-			$query = "INSERT INTO keranjang_pembelian VALUES ('', '$keranjang_nama', '$keranjang_harga', '$barang_id', '$keranjang_qty', '$keranjang_id_kasir', '$keranjang_id_cek', '$keranjang_cabang')";
+			$query = "INSERT INTO keranjang_pembelian (
+									keranjang_nama,
+									keranjang_harga,
+									barang_id,
+									keranjang_qty,
+									keranjang_id_kasir,
+									keranjang_id_cek,
+									keranjang_cabang,
+									keranjang_satuan_pilihan,
+									keranjang_konversi_value,
+									keranjang_diskon
+								) VALUES (
+									'$keranjang_nama',
+									'$keranjang_harga',
+									'$barang_id',
+									'$keranjang_qty',
+									'$keranjang_id_kasir',
+									'$keranjang_id_cek',
+									'$keranjang_cabang',
+									'1',
+									1.00,
+									0.00
+								)";
+
 			
 			mysqli_query($conn, $query);
 
