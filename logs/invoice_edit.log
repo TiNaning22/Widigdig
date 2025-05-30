@@ -37,3 +37,55 @@
 [2025-05-29 09:24:41] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-1278jj Total: Rp.2.220
 [2025-05-29 09:36:17] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-U89UHJA Total: Rp.2.220
 [2025-05-29 09:37:27] [USER:3] [IP:::1] Transaksi berhasil: Invoice #456tyGFHJN Total: Rp.2.220
+[2025-05-29 10:55:46] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-9281 Total: Rp.13.320
+[2025-05-29 15:05:41] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-654Jsssss Total: Rp.2.775
+[2025-05-29 15:07:20] [USER:3] [IP:::1] Transaksi berhasil: Invoice #vghbjn327 Total: Rp.55.500
+[2025-05-29 15:10:25] [USER:3] [IP:::1] Transaksi berhasil: Invoice #jhh Total: Rp.4.440
+[2025-05-29 15:42:46] [USER:3] [IP:::1] Transaksi berhasil: Invoice #FESNUK219 Total: Rp.3.330
+[2025-05-29 15:46:14] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-2187 Total: Rp.55.500
+[2025-05-29 15:48:47] [USER:3] [IP:::1] Transaksi berhasil: Invoice #KENTUNG Total: Rp.41.625
+[2025-05-29 15:59:08] [USER:3] [IP:::1] Transaksi berhasil: Invoice #fsdg1239 Total: Rp.5.619.375
+[2025-05-29 16:18:11] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-2189 Total: Rp.55.500
+[2025-05-29 16:32:49] [USER:3] [IP:::1] Transaksi berhasil: Invoice #45gfgf Total: Rp.111.000
+[2025-05-29 16:35:16] [USER:3] [IP:::1] Transaksi berhasil: Invoice #LOPYU-889 Total: Rp.122.100
+[2025-05-29 16:46:39] [USER:3] [IP:::1] Transaksi berhasil: Invoice #6514edsf Total: Rp.61.050
+[2025-05-29 16:59:13] [USER:3] [IP:::1] Transaksi berhasil: Invoice #GBHJNK5216 Total: Rp.55.500
+[2025-05-29 17:01:13] [USER:3] [IP:::1] Transaksi berhasil: Invoice #1245678 Total: Rp.111.000
+[2025-05-29 17:21:07] [USER:3] [IP:::1] Transaksi berhasil: Invoice #BVC1231 Total: Rp.61.050
+[2025-05-30 08:52:12] [USER:3] [IP:::1] Transaksi berhasil: Invoice #123000 Total: Rp.610.500
+[2025-05-30 08:53:29] [USER:3] [IP:::1] Transaksi berhasil: Invoice #fvghbjn Total: Rp.55.500
+[2025-05-30 09:05:40] [USER:3] [IP:::1] Transaksi berhasil: Invoice #41232 Total: Rp.166.500
+[2025-05-30 09:08:50] [USER:3] [IP:::1] Transaksi berhasil: Invoice #FGHJ213 Total: Rp.166.500
+[2025-05-30 09:23:43] [USER:3] [IP:::1] Transaksi berhasil: Invoice #JHHH Total: Rp.222.000
+[2025-05-30 09:34:29] [USER:3] [IP:::1] Transaksi berhasil: Invoice #903 Total: Rp.222.000
+[2025-05-30 09:57:58] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-129 Total: Rp.55.500
+[2025-05-30 10:13:57] [USER:3] [IP:::1] Transaksi berhasil: Invoice #UJKN651 Total: Rp.166.500
+[2025-05-30 10:16:48] [USER:3] [IP:::1] Transaksi berhasil: Invoice #sfdgf2 Total: Rp.166.500
+[2025-05-30 10:33:40] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:33:40] [USER:3] [IP:::1] Transaksi gagal: Gagal insert invoice: Unknown column 'invoice_subtotal' in 'field list'
+[2025-05-30 10:36:09] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:36:09] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-2198738 Total: Rp.166.500
+[2025-05-30 10:36:48] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:36:48] [USER:3] [IP:::1] Transaksi berhasil: Invoice #1243243t Total: Rp.166.500
+[2025-05-30 10:45:49] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:45:49] [USER:3] [IP:::1] Transaksi berhasil: Invoice #dsf Total: Rp.166.500
+[2025-05-30 10:49:16] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:49:16] [USER:3] [IP:::1] Transaksi berhasil: Invoice #SASD Total: Rp.166.500
+[2025-05-30 10:52:27] [USER:3] [IP:::1] nyobain : Diskon Input: 0, diskon nominal: 0
+[2025-05-30 10:52:27] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:52:27] [USER:3] [IP:::1] Transaksi berhasil: Invoice #ghjbnk Total: Rp.166.500
+[2025-05-30 10:54:07] [USER:3] [IP:::1] nyobain : Diskon Input: 0, diskon nominal: 0
+[2025-05-30 10:54:07] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 10:54:07] [USER:3] [IP:::1] Transaksi berhasil: Invoice #JBHNK3121 Total: Rp.166.500
+[2025-05-30 11:02:51] [USER:3] [IP:::1] Item 0 - Barang ID: 89, Qty: 10, Harga: 15000, Diskon: 0%, Diskon Nominal: 0, Subtotal: 150000
+[2025-05-30 11:02:51] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 150000, Diskon: 0, After: 150000, PPN: 16500, Grand: 166500
+[2025-05-30 11:02:51] [USER:3] [IP:::1] Detail Insert - Barang ID: 89, Qty: 10, Harga: 15000, Diskon: 0%, Subtotal: 150000
+[2025-05-30 11:02:51] [USER:3] [IP:::1] Transaksi berhasil: Invoice #VHBKJN21321 Total: Rp.166.500
+[2025-05-30 11:26:28] [USER:3] [IP:::1] Item 0 - Barang ID: 89, Qty: 5, Harga: 15000, Diskon: 5%, Diskon Nominal: 3750, Subtotal: 71250
+[2025-05-30 11:26:28] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 75000, Diskon: 3750, After: 71250, PPN: 7837.5, Grand: 79087.5
+[2025-05-30 11:26:28] [USER:3] [IP:::1] Detail Insert - Barang ID: 89, Qty: 5, Harga: 15000, Diskon: 5%, Subtotal: 71250
+[2025-05-30 11:26:28] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-2178sSS Total: Rp.79.088
+[2025-05-30 11:34:05] [USER:3] [IP:::1] Item 0 - Barang ID: 90, Qty: 10, Harga: 25000, Diskon: 10%, Diskon Nominal: 25000, Subtotal: 225000
+[2025-05-30 11:34:05] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 250000, Diskon: 25000, After: 225000, PPN: 24750, Grand: 249750
+[2025-05-30 11:34:05] [USER:3] [IP:::1] Detail Insert - Barang ID: 90, Qty: 10, Harga: 25000, Diskon: 10%, Subtotal: 225000
+[2025-05-30 11:34:05] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-21387SJNAA Total: Rp.249.750

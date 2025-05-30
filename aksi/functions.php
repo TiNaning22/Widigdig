@@ -2091,31 +2091,42 @@ function updateStockPembelian($data) {
         }
         
         // Hitung total dari keranjang
-        $total = 0;
+        $subtotalSebelumDiskon = 0;
         $totalDiskon = 0;
+        $totalSetelahDiskon = 0;
+        
         foreach($data['barang_ids'] as $index => $barangId) {
-			
             $harga = floatval($data['barang_harga_beli'][$index]);
             $qty = intval($data['keranjang_qty'][$index]);
-            $diskon = floatval($data['diskon_value'][$index] ?? 0);
+            
+            // PERBAIKAN: Konsisten menggunakan diskon_item_value
+            $diskon = floatval($data['diskon_item_value'][$index] ?? 0);
             
             if ($harga <= 0) {
                 throw new Exception("Harga barang ID $barangId tidak valid (Rp. 0)");
             }
             
             $subtotal = $harga * $qty;
-            $subtotalSetelahDiskon = $subtotal * (1 - ($diskon/100));
-            $total += $subtotalSetelahDiskon;
-            $totalDiskon += ($subtotal - $subtotalSetelahDiskon);
+            $diskonNominal = $subtotal * ($diskon/100);
+            $subtotalSetelahDiskon = $subtotal - $diskonNominal;
+            
+            $subtotalSebelumDiskon += $subtotal;
+            $totalDiskon += $diskonNominal;
+            $totalSetelahDiskon += $subtotalSetelahDiskon;
+            
+            // Log detail per item untuk debugging
+            // writeLog("Item $index - Barang ID: $barangId, Qty: $qty, Harga: $harga, Diskon: $diskon%, Diskon Nominal: $diskonNominal, Subtotal: $subtotalSetelahDiskon");
         }
         
         $ppnPersen = floatval($data['ppn_value'] ?? 11);
-        $ppn = $total * ($ppnPersen/100);
-        $grandTotal = $total + $ppn;
+        $ppn = $totalSetelahDiskon * ($ppnPersen/100);
+        $grandTotal = $totalSetelahDiskon + $ppn;
         
         // Clean number format
         $bayar = floatval(str_replace('.', '', $data['angka1']));
-        $kembali = $bayar - $grandTotal; // Diperbaiki perhitungan kembalian
+        $kembali = $bayar - $grandTotal;
+
+        // writeLog("Calculation Debug - Subtotal Before: $subtotalSebelumDiskon, Diskon: $totalDiskon, After: $totalSetelahDiskon, PPN: $ppn, Grand: $grandTotal");
         
         // 1. Insert invoice pembelian
         $invoiceData = [
@@ -2168,50 +2179,43 @@ function updateStockPembelian($data) {
             $barangId = intval($barangId);
             $qty = intval($data['keranjang_qty'][$index]);
             $harga = floatval($data['barang_harga_beli'][$index]);
-            $diskon = floatval($data['diskon_value'][$index] ?? 0);
-            $subtotal = $harga * $qty * (1 - ($diskon/100));
+            
+            // PERBAIKAN: Konsisten menggunakan diskon_item_value dan perhitungan yang sama
+            $diskon = floatval($data['diskon_item_value'][$index] ?? 0);
+            $subtotalSebelumDiskon = $harga * $qty;
+            $diskonNominal = $subtotalSebelumDiskon * ($diskon/100);
+            $subtotal = $subtotalSebelumDiskon - $diskonNominal;
+            
+            // Log detail untuk debugging
+            // writeLog("Detail Insert - Barang ID: $barangId, Qty: $qty, Harga: $harga, Diskon: $diskon%, Subtotal: $subtotal");
             
             // Insert detail
             $queryDetail = "INSERT INTO pembelian SET 
-						pembelian_invoice = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
-						pembelian_barang_id = $barangId,
-						barang_id = $barangId,
-						barang_qty = $qty,
-						barang_harga_beli = $harga,
-						pembelian_diskon = $diskon,
-						pembelian_subtotal = $subtotal,
-						pembelian_cabang = ".intval($data['invoice_pembelian_cabang']).",
-						pembelian_date = CURDATE()";
+                        pembelian_invoice = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
+                        pembelian_barang_id = $barangId,
+                        barang_id = $barangId,
+                        barang_qty = $qty,
+                        barang_harga_beli = $harga,
+                        pembelian_diskon = $diskon,
+                        pembelian_subtotal = $subtotal,
+                        pembelian_cabang = ".intval($data['invoice_pembelian_cabang']).",
+                        pembelian_date = CURDATE()";
 
-			$resultDetail = mysqli_query($conn, $queryDetail);
-			if (!$resultDetail) {
-				throw new Exception("Gagal insert detail item $barangId: " . mysqli_error($conn) . " Query: " . $queryDetail);
-			}
+            $resultDetail = mysqli_query($conn, $queryDetail);
+            if (!$resultDetail) {
+                throw new Exception("Gagal insert detail item $barangId: " . mysqli_error($conn) . " Query: " . $queryDetail);
+            }
             
             // Update stock
             $queryStock = "UPDATE barang SET 
                           barang_stock = barang_stock + $qty,
-						  barang_harga_beli = $harga
+                          barang_harga_beli = $harga
                           WHERE barang_id = $barangId";
                           
             $resultStock = mysqli_query($conn, $queryStock);
             if (!$resultStock) {
                 throw new Exception("Gagal update stock barang $barangId: " . mysqli_error($conn));
             }
-            
-            // Insert stock history
-            // $queryHistory = "INSERT INTO stock_history SET 
-            //                 barang_id = $barangId,
-            //                 qty = $qty,
-            //                 jenis_transaksi = 'pembelian',
-            //                 no_transaksi = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
-            //                 tanggal = NOW(),
-            //                 cabang = ".intval($data['invoice_pembelian_cabang']);
-                            
-            // $resultHistory = mysqli_query($conn, $queryHistory);
-            // if (!$resultHistory) {
-            //     throw new Exception("Gagal insert history barang $barangId: " . mysqli_error($conn));
-            // }
         }
         
         // 3. Clear keranjang

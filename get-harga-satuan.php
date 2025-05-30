@@ -1,62 +1,79 @@
 <?php
-// File: get-harga-satuan.php
+// get-harga-satuan.php
 include 'aksi/koneksi.php'; // Sesuaikan dengan file koneksi database Anda
 
+// Cek apakah koneksi berhasil
+if (!isset($conn) || $conn === null) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Koneksi database gagal',
+        'harga_konversi' => 0
+    ]);
+    exit;
+}
+
 if ($_POST) {
-    $barang_id = $_POST['barang_id'];
+    $barang_id = intval($_POST['barang_id']);
     $satuan_pilihan = $_POST['satuan_pilihan'];
-    $konversi = $_POST['konversi'];
+    $konversi = floatval($_POST['konversi']);
     
     try {
-        // Ambil data barang
-        $query = "SELECT * FROM barang WHERE barang_id = '$barang_id'";
-        $result = mysqli_query($conn, $query);
-        $barang = mysqli_fetch_array($result);
+        // Query untuk mendapatkan harga barang
+        $query = "SELECT barang_harga_beli FROM barang WHERE barang_id = ?";
+        $stmt = $conn->prepare($query);
         
-        if (!$barang) {
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $koneksi->error);
+        }
+        
+        $stmt->bind_param("i", $barang_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $harga_dasar = floatval($row['barang_harga_beli']) ?: 0; // Default 0 jika null
+            
+            // Hitung harga berdasarkan konversi satuan
+            // Jika konversi > 1, maka harga per satuan kecil
+            // Jika konversi = 1, maka harga tetap
+            $harga_konversi = ($konversi > 0) ? $harga_dasar / $konversi : $harga_dasar;
+            
             echo json_encode([
-                'status' => 'error', 
-                'message' => 'Barang tidak ditemukan'
+                'status' => 'success',
+                'harga_dasar' => $harga_dasar,
+                'harga_konversi' => $harga_konversi,
+                'konversi' => $konversi,
+                'satuan_pilihan' => $satuan_pilihan,
+                'barang_id' => $barang_id
             ]);
-            exit;
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Barang tidak ditemukan',
+                'harga_konversi' => 0
+            ]);
         }
         
-        // Hitung harga berdasarkan satuan yang dipilih
-        $harga_beli_dasar = $barang['barang_harga_beli']; // Harga beli dalam satuan terkecil
-        $harga_konversi = 0;
-        
-        switch($satuan_pilihan) {
-            case '1': // Satuan terkecil
-                $harga_konversi = $harga_beli_dasar;
-                break;
-            case '2': // Satuan kedua
-                $harga_konversi = $harga_beli_dasar * $barang['satuan_isi_1'];
-                break;
-            case '3': // Satuan ketiga
-                $harga_konversi = $harga_beli_dasar * $barang['satuan_isi_2'];
-                break;
-            default:
-                $harga_konversi = $harga_beli_dasar;
-        }
-        
-        echo json_encode([
-            'status' => 'success',
-            'harga_konversi' => $harga_konversi,
-            'harga_beli_dasar' => $harga_beli_dasar,
-            'konversi_value' => $konversi,
-            'satuan_pilihan' => $satuan_pilihan
-        ]);
+        $stmt->close();
         
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
-            'message' => 'Error: ' . $e->getMessage()
+            'message' => 'Database error: ' . $e->getMessage(),
+            'harga_konversi' => 0
         ]);
     }
 } else {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Method not allowed'
+        'message' => 'Tidak ada data yang dikirim',
+        'harga_konversi' => 0
     ]);
+}
+
+// Tutup koneksi jika masih terbuka
+if (isset($koneksi) && $koneksi !== null) {
+    $koneksi->close();
 }
 ?>

@@ -17,6 +17,51 @@ $inParent = mysqli_fetch_array($invoiceNumber);
 $inId = $inParent['invoice_pembelian_number_id'] ?? 0;
 $in = $inParent['invoice_pembelian_number_input'] ?? null;
 $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
+
+// PERBAIKAN 1 & 2: Hitung semua nilai termasuk margin di PHP
+$i = 1; 
+$subtotalSebelumDiskon = 0;
+$totalDiskon = 0;
+$totalSetelahDiskon = 0;
+$hargaBeliTotal = 0;
+
+// Hitung semua nilai dalam loop
+foreach($keranjang as $row) : 
+    if ($row['keranjang_id_kasir'] === $_SESSION['user_id']) {
+        $bik = $row['barang_id'];
+        
+        // Ambil data barang termasuk harga beli
+        $query = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
+                 FROM barang b
+                 LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+                 LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
+                 LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
+                 WHERE b.barang_id = '$bik'";
+        $brg = mysqli_fetch_array(mysqli_query($conn, $query));
+        
+        $subtotal = $row['keranjang_harga'] * $row['keranjang_qty'];
+        $diskonPersen = $row['keranjang_diskon'] ?? 0;
+        $diskonNominal = $subtotal * ($diskonPersen / 100);
+        $subtotalSetelahDiskonItem = $subtotal - $diskonNominal;
+        
+        $subtotalSebelumDiskon += $subtotal;
+        $totalDiskon += $diskonNominal;
+        $totalSetelahDiskon += $subtotalSetelahDiskonItem;
+        
+        // Hitung total harga beli (gunakan harga dari keranjang jika ada, fallback ke database)
+        $hargaBeliItem = $row['keranjang_harga'] > 0 ? $row['keranjang_harga'] : $brg['barang_harga_beli'];
+        $hargaBeliTotal += $hargaBeliItem * $row['keranjang_qty'];
+    }
+endforeach;
+
+// PERBAIKAN 1: Standardisasi rumus margin - gunakan Grand Total (termasuk PPN)
+$totalPPN = $totalSetelahDiskon * 0.11;
+$grandTotal = $totalSetelahDiskon + $totalPPN;
+$marginKotor = $grandTotal - $hargaBeliTotal;
+$marginPersen = ($hargaBeliTotal > 0) ? ($marginKotor / $hargaBeliTotal) * 100 : 0;
+
+// Batasi margin persen dalam range yang wajar
+$marginPersen = max(-999, min(9999, $marginPersen));
 ?>
 
 <div class="card">
@@ -32,7 +77,6 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                             <i class="fa fa-pencil" style="color: green; cursor: pointer;"></i>
                         </span>
                     <?php else : ?>
-                        <!-- FIX: Gunakan $inId yang sudah terdefinisi -->
                         <span class="invoice-edit-btn" data-id="<?= $inId; ?>">
                             <i class="fa fa-edit" style="color: blue; cursor: pointer;"></i>
                         </span>
@@ -78,13 +122,7 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                 <tbody>
                     <?php 
                     $i = 1; 
-                    $subtotalSebelumDiskon = 0;
-                    $totalDiskon = 0;
-                    $totalSetelahDiskon = 0;
-                    $hargaBeliTotal = 0;
-                    ?>
-                    
-                    <?php foreach($keranjang as $row) : 
+                    foreach($keranjang as $row) : 
                         $bik = $row['barang_id'];
                         $query = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
                                  FROM barang b
@@ -98,37 +136,38 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                         $diskonPersen = $row['keranjang_diskon'] ?? 0;
                         $diskonNominal = $subtotal * ($diskonPersen / 100);
                         $subtotalSetelahDiskon = $subtotal - $diskonNominal;
-                        // $marginKotor = $totalSetelahDiskon - $hargaBeliTotal;
-                        // $marginPersen = ($hargaBeliTotal > 0) ? ($marginKotor / $hargaBeliTotal) * 100 : 0;
                         
                         if ($row['keranjang_id_kasir'] === $_SESSION['user_id']) {
-                            $subtotalSebelumDiskon += $subtotal;
-                            $totalDiskon += $diskonNominal;
-                            $totalSetelahDiskon += $subtotalSetelahDiskon;
-                            $hargaBeliTotal += $brg['barang_harga_beli'] * $row['keranjang_qty'];
                     ?>
                     <tr data-keranjang-id="<?= $row['keranjang_id']; ?>">
                         <td><?= $i; ?></td>
                         <td><?= $row['keranjang_nama']; ?></td>
                         <td>
-                            <select name="satuan_pembelian[]" class="form-control satuan-pilihan" data-barangid="<?= $row['barang_id']; ?>">
-                                <option value="1" data-konversi="1"><?= $brg['satuan_1'] ?></option>
+                            <select name="satuan_pembelian[]" class="form-control satuan-pilihan" 
+                                    data-barangid="<?= $row['barang_id']; ?>" 
+                                    data-keranjang-id="<?= $row['keranjang_id']; ?>">
+                                <option value="1" data-konversi="1" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
+                                    <?= $brg['satuan_1'] ?>
+                                </option>
                                 <?php if($brg['satuan_id_2'] > 0): ?>
-                                <option value="2" data-konversi="<?= $brg['satuan_isi_1'] ?>">
+                                <option value="2" data-konversi="<?= $brg['satuan_isi_1'] ?>" 
+                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_1']; ?>">
                                     <?= $brg['satuan_2'] ?> (1 <?= $brg['satuan_2'] ?> = <?= $brg['satuan_isi_1'] ?> <?= $brg['satuan_1'] ?>)
                                 </option>
                                 <?php endif; ?>
                                 <?php if($brg['satuan_id_3'] > 0): ?>
-                                <option value="3" data-konversi="<?= $brg['satuan_isi_2'] ?>">
+                                <option value="3" data-konversi="<?= $brg['satuan_isi_2'] ?>" 
+                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_2']; ?>">
                                     <?= $brg['satuan_3'] ?> (1 <?= $brg['satuan_3'] ?> = <?= $brg['satuan_isi_2'] ?> <?= $brg['satuan_1'] ?>)
                                 </option>
                                 <?php endif; ?>
                             </select>
                         </td>
                         <td>
-                            <span class="harga-text" data-harga="<?= $row['keranjang_harga'] ?: $brg['barang_harga_beli']; ?>" 
-                                data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
-                                Rp. <?= number_format($row['keranjang_harga'] ?: $brg['barang_harga_beli'], 0, ',', '.'); ?>
+                            <span class="harga-text" 
+                                data-harga="<?= $row['keranjang_harga'] ?: 0; ?>" 
+                                data-harga-beli="<?= $brg['barang_harga_beli'] ?: 0; ?>">
+                                Rp. <?= number_format($row['keranjang_harga'] ?: 0, 0, ',', '.'); ?>
                             </span>
                             <span class="keranjang-right">
                                 <button class="btn-success edit-harga-beli" data-id="<?= $row['keranjang_id']; ?>">
@@ -232,13 +271,13 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                 <tr>
                                     <td><b>PPN (11%)</b></td>
                                     <td class="table-nominal" id="ppn-display">
-                                        Rp. <?= number_format($totalSetelahDiskon * 0.11, 0, ',', '.'); ?>
+                                        Rp. <?= number_format($totalPPN, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><b>TOTAL</b></td>
                                     <td class="table-nominal" id="total-display">
-                                        Rp. <?= number_format($totalSetelahDiskon * 1.11, 0, ',', '.'); ?>
+                                        Rp. <?= number_format($grandTotal, 0, ',', '.'); ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -285,13 +324,19 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                             if ($stk['keranjang_id_kasir'] === $_SESSION['user_id']) {
                                         ?>
                                             <input type="hidden" name="barang_ids[]" value="<?= $stk['barang_id']; ?>">
-                                            <input type="hidden" name="keranjang_qty[]" value="<?= $stk['keranjang_qty'] ?>"> 
+                                            <input type="hidden" name="keranjang_qty[]" value="<?= $stk['keranjang_qty'] ?>" 
+                                                   class="qty-hidden" data-keranjang-id="<?= $stk['keranjang_id']; ?>"> 
                                             <input type="hidden" name="keranjang_id_kasir[]" value="<?= $_SESSION['user_id']; ?>">
                                             <input type="hidden" name="pembelian_invoice[]" value="<?= $in; ?>">
                                             <input type="hidden" name="pembelian_invoice_parent[]" value="<?= $inDelete; ?>">
                                             <input type="hidden" name="pembelian_date[]" value="<?= date("Y-m-d") ?>">
-                                            <input type="hidden" name="barang_harga_beli[]" value="<?= $stk['keranjang_harga']; ?>">
+                                            <input type="hidden" name="barang_harga_beli[]" value="<?= $stk['keranjang_harga']; ?>" 
+                                                   class="harga-hidden" data-keranjang-id="<?= $stk['keranjang_id']; ?>">
                                             <input type="hidden" name="pembelian_cabang[]" value="<?= $sessionCabang; ?>">
+                                            <input type="hidden" name="satuan_pilihan[]" value="1" 
+                                                   class="satuan-hidden" data-keranjang-id="<?= $stk['keranjang_id']; ?>">
+                                            <input type="hidden" name="konversi_value[]" value="1" 
+                                                   class="konversi-hidden" data-keranjang-id="<?= $stk['keranjang_id']; ?>">
                                             <input type="hidden" 
                                                 name="diskon_item_value[]" 
                                                 value="<?= $stk['keranjang_diskon'] ?? 0; ?>" 
@@ -314,8 +359,8 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                                         <input type="hidden" name="subtotal_sebelum_diskon" id="subtotal-hidden" value="<?= $subtotalSebelumDiskon; ?>">
                                         <input type="hidden" name="total_diskon" id="total-diskon-hidden" value="<?= $totalDiskon; ?>">
                                         <input type="hidden" name="total_setelah_diskon" id="total-setelah-diskon-hidden" value="<?= $totalSetelahDiskon; ?>">
-                                        <input type="hidden" name="total_ppn" id="total-ppn-hidden" value="<?= $totalSetelahDiskon * 0.11; ?>">
-                                        <input type="hidden" name="grand_total" id="grand-total-hidden" value="<?= $totalSetelahDiskon * 1.11; ?>">
+                                        <input type="hidden" name="total_ppn" id="total-ppn-hidden" value="<?= $totalPPN; ?>">
+                                        <input type="hidden" name="grand_total" id="grand-total-hidden" value="<?= $grandTotal; ?>">
                                         
                                         <!-- Margin calculations -->
                                         <input type="hidden" name="margin_kotor" id="margin-kotor-hidden" value="<?= $marginKotor; ?>">
@@ -354,14 +399,15 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
     $(function () {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
         
+        // Alert untuk harga beli kosong
         $(document).on('click', '.btn-disabled', function(){
             alert("Harga Beli Masih ada yang bernilai kosong (Rp.0) !! Segera Update Harga Pembelian Barang per Produk ..");
         });
 
-            $(document).on('click', '.invoice-edit-btn', function(e) {
+        // ===== EDIT INVOICE HANDLER =====
+        $(document).on('click', '.invoice-edit-btn', function(e) {
             e.preventDefault();
             var invoiceId = $(this).data('id');
-            console.log('Invoice ID:', invoiceId);
 
             if (!invoiceId) {
                 alert('Invoice ID tidak ditemukan');
@@ -378,32 +424,136 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                 },
                 error: function(xhr) {
                     alert('Gagal memuat data invoice');
-                    console.log('error:', xhr);
                 }
             });
         });
 
-        // Event handler untuk edit harga beli
+        // ===== EDIT HARGA BELI =====
         $(document).on('click', '.edit-harga-beli', function(e) {
             e.preventDefault();
             $("#modal-id-2").modal('show');
             
-            var row = $(this).closest('tr');
-            var hargaDefault = row.find('.harga-text').data('harga-beli'); // Ambil harga beli default
+            var $row = $(this).closest('tr');
+            var keranjangId = $(this).data('id');
+            var currentHarga = parseFloat($row.find('.harga-text').attr('data-harga')) || 0;
             
-            $.post('transaksi-pembelian-harga-beli.php', {
-                id: $(this).data('id'),
-                harga_default: hargaDefault // Kirim harga default ke form edit
-            }, function(html) {
-                $("#data-keranjang-pembelian").html(html);
+            window.currentEditingRow = $row;
+            window.currentKeranjangId = keranjangId;
+            
+            $("#data-keranjang-pembelian").html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>');
+            
+            $.ajax({
+                url: 'transaksi-pembelian-harga-beli.php',
+                type: 'POST',
+                data: {
+                    id: keranjangId,
+                    harga_current: currentHarga,
+                    keranjang_id: keranjangId
+                },
+                success: function(html) {
+                    $("#data-keranjang-pembelian").html(html);
+                },
+                error: function(xhr) {
+                    $("#data-keranjang-pembelian").html('<div class="text-center text-danger py-4">Gagal memuat data</div>');
+                }
             });
         });
 
-        // Handle submit form edit invoice
+        // ===== SUBMIT EDIT HARGA BELI =====
+        $(document).off('submit', '#form-edit-harga-beli').on('submit', '#form-edit-harga-beli', function(e) {
+            e.preventDefault();
+            
+            var $form = $(this);
+            var $modal = $('#modal-id-2');
+            var $submitBtn = $form.find('button[type="submit"]');
+            var originalText = $submitBtn.html();
+            
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+            
+            $.ajax({
+                url: "transaksi-pembelian-harga-beli-proses.php",
+                data: $form.serialize(),
+                type: "post",
+                dataType: "json",
+                success: function(result) {
+                    if (result.hasil === "sukses") {
+                        var keranjangId = result.keranjang_id;
+                        var hargaBaru = parseFloat(result.harga_baru) || 0;
+                        
+                        updateDOMHargaBeli(keranjangId, hargaBaru);
+                        
+                        setTimeout(function() {
+                            $modal.modal('hide');
+                            
+                            setTimeout(function() {
+                                Swal.fire({
+                                    title: 'Sukses',
+                                    text: 'Harga berhasil diupdate ke Rp. ' + formatNumber(hargaBaru),
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                
+                                setTimeout(function() {
+                                    hitungTotalKeseluruhan();
+                                }, 100);
+                            }, 200);
+                        }, 300);
+                        
+                    } else {
+                        Swal.fire('Error', result.pesan || 'Gagal update harga', 'error');
+                        $submitBtn.prop('disabled', false).html(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire('Error', 'Terjadi kesalahan sistem: ' + error, 'error');
+                    $submitBtn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
+        // ===== FUNGSI UPDATE DOM HARGA BELI =====
+        function updateDOMHargaBeli(keranjangId, hargaBaru) {
+            var $targetRows = $('tr[data-keranjang-id="' + keranjangId + '"]');
+            
+            if ($targetRows.length === 0 && window.currentEditingRow) {
+                $targetRows = window.currentEditingRow;
+            }
+            
+            if ($targetRows.length === 0) {
+                return;
+            }
+            
+            $targetRows.each(function(index) {
+                var $row = $(this);
+                var $hargaText = $row.find('.harga-text');
+                if ($hargaText.length) {
+                    $hargaText.attr('data-harga', hargaBaru);
+                    $hargaText.data('harga', hargaBaru);
+                    $hargaText.text('Rp. ' + formatNumber(hargaBaru));
+                }
+                
+                var $hargaInput = $row.find('input[name="barang_harga_beli[]"]');
+                if ($hargaInput.length) {
+                    $hargaInput.val(hargaBaru);
+                }
+                
+                $row.find('input[data-type="harga-beli"]').val(hargaBaru);
+                $row.attr('data-last-updated', new Date().getTime());
+                
+                setTimeout(function() {
+                    hitungSubtotalItem($row);
+                }, 50);
+            });
+            
+            window.currentEditingRow = null;
+            window.currentKeranjangId = null;
+        }
+
+        // ===== SUBMIT EDIT INVOICE =====
         $('#form-edit-invoice').submit(function(e) {
             e.preventDefault();
             
-            // Tampilkan loading
             Swal.fire({
                 title: 'Memproses',
                 html: 'Sedang menyimpan perubahan...',
@@ -432,9 +582,6 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                 error: function(xhr, status, error) {
                     Swal.close();
                     
-                    console.error("Error:", error);
-                    console.log("Response:", xhr.responseText);
-                    
                     try {
                         var errResponse = JSON.parse(xhr.responseText);
                         Swal.fire('Error', errResponse.message || 'Terjadi kesalahan saat update', 'error');
@@ -445,46 +592,26 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
             });
         });
 
-        // Handle submit form edit harga beli
-        $("#form-edit-harga-beli").submit(function(e) {
-            e.preventDefault();
-            $.ajax({
-                url: "transaksi-pembelian-harga-beli-proses.php",
-                data: $(this).serialize(),
-                type: "post",
-                success: function(result) {
-                    var hasil = JSON.parse(result);
-                    if (hasil.hasil === "sukses") {
-                        $('#modal-id-2').modal('hide');
-                        Swal.fire('Sukses', 'Data Berhasil diupdate', 'success');
-                        location.reload();
-                    }
-                }
-            });
-        });
-
+        // ===== SATUAN CHANGE HANDLER =====
         $(document).on('change', '.satuan-pilihan', function() {
-            var row = $(this).closest('tr');
-            var barangId = $(this).data('barangid');
-            var satuanTerpilih = $(this).val();
-            var konversiValue = $(this).find('option:selected').data('konversi');
+            var $this = $(this);
+            var row = $this.closest('tr');
+            var barangId = $this.data('barangid');
+            var satuanTerpilih = $this.val();
+            var konversiValue = $this.find('option:selected').data('konversi');
             var keranjangId = row.data('keranjang-id');
             
-            console.log('Satuan berubah:', {
-                barangId: barangId,
-                satuanTerpilih: satuanTerpilih,
-                konversiValue: konversiValue,
-                keranjangId: keranjangId
-            });
+            $this.prop('disabled', true);
             
-            // Update harga berdasarkan satuan yang dipilih
-            updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId);
+            updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId, function() {
+                $this.prop('disabled', false);
+            });
         });
         
-        // Fungsi untuk mengupdate harga berdasarkan satuan
-        function updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId) {
+        // ===== FUNGSI UPDATE HARGA BERDASARKAN SATUAN =====
+        function updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId, callback) {
             $.ajax({
-                url: 'get-harga-satuan.php', // File PHP untuk mengambil harga berdasarkan satuan
+                url: 'get-harga-satuan.php',
                 type: 'POST',
                 data: {
                     barang_id: barangId,
@@ -494,32 +621,24 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                 dataType: 'json',
                 success: function(response) {
                     if (response.status === 'success') {
-                        // Update harga display
-                        var hargaText = row.find('.harga-text');
-                        hargaText.data('harga', response.harga_konversi);
-                        hargaText.text('Rp. ' + response.harga_konversi.toLocaleString('id-ID'));
+                        var hargaKonversi = parseFloat(response.harga_konversi) || 0;
+                        updateDOMHargaBeli(keranjangId, hargaKonversi);
+                        updateKeranjangSatuan(keranjangId, satuanTerpilih, hargaKonversi, konversiValue);
                         
-                        // Update hidden input harga
-                        var hargaInput = $('input[name="barang_harga_beli[]"]').eq(row.index());
-                        hargaInput.val(response.harga_konversi);
-                        
-                        // Update database keranjang dengan harga dan satuan baru
-                        updateKeranjangSatuan(keranjangId, satuanTerpilih, response.harga_konversi, konversiValue);
-                        
-                        // Hitung ulang subtotal
-                        hitungSubtotalItem(row);
+                        if (callback) callback();
                     } else {
-                        alert('Gagal mengambil harga satuan: ' + response.message);
+                        alert('Gagal mengambil harga satuan: ' + (response.message || 'Unknown error'));
+                        if (callback) callback();
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', error);
                     alert('Terjadi kesalahan saat mengambil harga satuan');
+                    if (callback) callback();
                 }
             });
         }
         
-        // Fungsi untuk update keranjang dengan satuan dan harga baru
+        // ===== UPDATE KERANJANG SATUAN =====
         function updateKeranjangSatuan(keranjangId, satuanPilihan, hargaKonversi, konversiValue) {
             $.ajax({
                 url: 'update-keranjang-satuan.php',
@@ -530,93 +649,98 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
                     harga_konversi: hargaKonversi,
                     konversi_value: konversiValue
                 },
-                success: function(response) {
-                    console.log('Keranjang updated:', response);
-                },
                 error: function(xhr, status, error) {
-                    console.error('Error updating keranjang:', error);
                 }
             });
         }
         
-        // Fungsi untuk konversi qty berdasarkan satuan
-        function konversiQtyBerdasarkanSatuan(qtyInput, konversiValue) {
-            var qty = parseFloat(qtyInput) || 1;
-            return qty * parseFloat(konversiValue);
-        }
-        
-        // Event listener untuk form submit - konversi qty sebelum submit
+        // ===== FORM SUBMIT HANDLER =====
         $('#form-transaksi').on('submit', function(e) {
-            // Konversi semua qty berdasarkan satuan yang dipilih
-            $('tbody tr').each(function() {
-                var row = $(this);
-                var satuanSelect = row.find('.satuan-pilihan');
-                var konversiValue = satuanSelect.find('option:selected').data('konversi') || 1;
-                var qtyInput = row.find('.qty-input');
-                var qtyOriginal = parseFloat(qtyInput.val()) || 1;
+            var diskonInconsistencies = [];
+            
+            $('tbody tr').each(function(index) {
+                var $row = $(this);
+                var keranjangId = $row.data('keranjang-id');
+                var displayDiskon = parseFloat($row.find('.diskon-input').val()) || 0;
+                var $hiddenDiskon = $('input[name="diskon_item_value[]"][data-keranjang-id="' + keranjangId + '"]');
+                var hiddenDiskon = parseFloat($hiddenDiskon.val()) || 0;
                 
-                // Konversi qty untuk stock (qty pembelian * konversi = qty stock)
-                var qtyStock = qtyOriginal * parseFloat(konversiValue);
-                
-                // Update hidden input untuk qty yang akan disimpan ke stock
-                var qtyHidden = $('input[name="keranjang_qty[]"]').eq(row.index());
-                if (qtyHidden.length) {
-                    qtyHidden.val(qtyStock);
+                if (Math.abs(displayDiskon - hiddenDiskon) > 0.01) {
+                    diskonInconsistencies.push({
+                        keranjangId: keranjangId,
+                        rowIndex: index,
+                        displayDiskon: displayDiskon,
+                        hiddenDiskon: hiddenDiskon
+                    });
                 }
-                
-                console.log('Konversi qty:', {
-                    qtyOriginal: qtyOriginal,
-                    konversiValue: konversiValue,
-                    qtyStock: qtyStock
-                });
             });
-        });
-        
-        // Inisialisasi nilai awal satuan
-        $('.satuan-pilihan').each(function() {
-            var defaultKonversi = $(this).find('option:selected').data('konversi') || 1;
-            $(this).trigger('change');
+            
+            if (diskonInconsistencies.length > 0) {
+                e.preventDefault();
+                
+                diskonInconsistencies.forEach(function(item) {
+                    var $hiddenInput = $('input[name="diskon_item_value[]"][data-keranjang-id="' + item.keranjangId + '"]');
+                    $hiddenInput.val(item.displayDiskon);
+                });
+                
+                Swal.fire({
+                    title: 'Perbaikan Data',
+                    text: 'Ditemukan inkonsistensi data diskon yang telah diperbaiki. Silakan submit ulang.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                
+                return false;
+            }
         });
 
-        // Fungsi untuk menghitung dan update subtotal per item
+        // ===== FUNGSI HITUNG SUBTOTAL ITEM =====
         function hitungSubtotalItem(row) {
+            if (!row || !row.length) {
+                return;
+            }
+            
             var qty = parseFloat(row.find('.qty-input').val()) || 0;
-            var harga = parseFloat(row.find('.harga-text').data('harga')) || 0;
+            var harga = parseFloat(row.find('.harga-text').attr('data-harga')) || 0;
             var diskonPersen = parseFloat(row.find('.diskon-input').val()) || 0;
+            var keranjangId = row.data('keranjang-id');
             
             var subtotal = qty * harga;
             var diskonNominal = subtotal * (diskonPersen / 100);
             var subtotalSetelahDiskon = subtotal - diskonNominal;
             
-            row.find('.subtotal').text('Rp. ' + subtotalSetelahDiskon.toLocaleString('id-ID'));
+            var $subtotalElement = row.find('.subtotal');
+            if ($subtotalElement.length) {
+                $subtotalElement.text('Rp. ' + formatNumber(subtotalSetelahDiskon));
+            }
             
-            // Update hidden input untuk diskon
-            var keranjangId = row.find('.diskon-input').data('keranjang-id');
-            $('input[name="diskon_item_value[]"]').each(function(index) {
-                if ($(this).closest('tr').length === 0) { // Hidden input tidak dalam tr
-                    var currentIndex = $('input[name="diskon_item_value[]"]').index(this);
-                    var targetRow = $('tr[data-keranjang-id]').eq(currentIndex);
-                    if (targetRow.data('keranjang-id') == keranjangId) {
-                        $(this).val(diskonPersen);
-                    }
+            var $hiddenDiskonInput = $('input[name="diskon_item_value[]"][data-keranjang-id="' + keranjangId + '"]');
+            if ($hiddenDiskonInput.length) {
+                $hiddenDiskonInput.val(diskonPersen);
+            } else {
+                var rowIndex = $('tbody tr').index(row);
+                var $hiddenDiskonInputByIndex = $('input[name="diskon_item_value[]"]').eq(rowIndex);
+                if ($hiddenDiskonInputByIndex.length) {
+                    $hiddenDiskonInputByIndex.val(diskonPersen);
                 }
-            });
+            }
             
-            hitungTotalKeseluruhan();
+            setTimeout(hitungTotalKeseluruhan, 50);
         }
 
-        // Fungsi untuk menghitung total keseluruhan
+        // ===== FUNGSI HITUNG TOTAL KESELURUHAN =====
         function hitungTotalKeseluruhan() {
             var subtotalSebelumDiskon = 0;
             var totalDiskon = 0;
             var totalSetelahDiskon = 0;
             var hargaBeliTotal = 0;
             
-            $('tbody tr').each(function() {
-                var qty = parseFloat($(this).find('.qty-input').val()) || 0;
-                var harga = parseFloat($(this).find('.harga-text').data('harga')) || 0;
-                var diskonPersen = parseFloat($(this).find('.diskon-input').val()) || 0;
-                var hargaBeli = parseFloat($(this).find('.harga-text').data('harga-beli')) || 0;
+            $('tbody tr').each(function(index) {
+                var $row = $(this);
+                var qty = parseFloat($row.find('.qty-input').val()) || 0;
+                var harga = parseFloat($row.find('.harga-text').attr('data-harga')) || 0;
+                var diskonPersen = parseFloat($row.find('.diskon-input').val()) || 0;
+                var hargaBeli = parseFloat($row.find('.harga-text').attr('data-harga-beli')) || harga;
                 
                 var subtotal = qty * harga;
                 var diskonNominal = subtotal * (diskonPersen / 100);
@@ -631,18 +755,17 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
             var totalPPN = totalSetelahDiskon * 0.11;
             var grandTotal = totalSetelahDiskon + totalPPN;
             var marginKotor = grandTotal - hargaBeliTotal;
-            var marginPersen = (hargaBeliTotal > 0) ? (marginKotor / hargaBeliTotal) * 100 : 0;
+            var marginPersen = hargaBeliTotal > 0 ? (marginKotor / hargaBeliTotal) * 100 : 0;
+            marginPersen = Math.max(0, Math.min(100, marginPersen));
             
-            // Update tampilan
-            $('#subtotal-display').text('Rp. ' + subtotalSebelumDiskon.toLocaleString('id-ID'));
-            $('#diskon-display').text('Rp. ' + totalDiskon.toLocaleString('id-ID'));
-            $('#setelah-diskon-display').text('Rp. ' + totalSetelahDiskon.toLocaleString('id-ID'));
-            $('#ppn-display').text('Rp. ' + totalPPN.toLocaleString('id-ID'));
-            $('#total-display').text('Rp. ' + grandTotal.toLocaleString('id-ID'));
-            $('#margin-display').text('Rp. ' + marginKotor.toLocaleString('id-ID'));
+            $('#subtotal-display').text('Rp. ' + formatNumber(subtotalSebelumDiskon));
+            $('#diskon-display').text('Rp. ' + formatNumber(totalDiskon));
+            $('#setelah-diskon-display').text('Rp. ' + formatNumber(totalSetelahDiskon));
+            $('#ppn-display').text('Rp. ' + formatNumber(totalPPN));
+            $('#total-display').text('Rp. ' + formatNumber(grandTotal));
+            $('#margin-display').text('Rp. ' + formatNumber(marginKotor));
             $('#margin-persen-display').text(marginPersen.toFixed(2) + '%');
             
-            // Update hidden inputs
             $('#subtotal-hidden').val(subtotalSebelumDiskon);
             $('#total-diskon-hidden').val(totalDiskon);
             $('#total-setelah-diskon-hidden').val(totalSetelahDiskon);
@@ -652,46 +775,76 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
             $('#margin-persen-hidden').val(marginPersen);
             $('#harga-beli-total-hidden').val(hargaBeliTotal);
             
-            // Update nilai b2 untuk perhitungan kembalian
             $('.b2').val(grandTotal);
-            hitung2(); // Recalculate kembalian
+            
+            hitung2();
         }
 
-        // Event listener untuk perubahan diskon
+        // ===== DISKON INPUT HANDLER =====
+        var diskonUpdateTimeout;
         $(document).on('input change', '.diskon-input', function() {
-            var row = $(this).closest('tr');
-            var keranjangId = $(this).data('keranjang-id');
-            var diskonValue = $(this).val();
+            var $this = $(this);
+            var row = $this.closest('tr');
+            var keranjangId = $this.data('keranjang-id');
+            var diskonValue = parseFloat($this.val()) || 0;
             
-            // Update diskon ke database via AJAX
-            $.ajax({
-                url: 'update-discount-keranjang.php',
-                type: 'POST',
-                data: {
-                    keranjang_id: keranjangId,
-                    diskon: diskonValue
-                },
-                success: function(response) {
-                    console.log('Diskon updated:', response);
-                }
-            });
+            var $hiddenDiskonInput = $('input[name="diskon_item_value[]"][data-keranjang-id="' + keranjangId + '"]');
+            if ($hiddenDiskonInput.length) {
+                $hiddenDiskonInput.val(diskonValue);
+            }
             
             hitungSubtotalItem(row);
+            
+            clearTimeout(diskonUpdateTimeout);
+            
+            diskonUpdateTimeout = setTimeout(function() {
+                $.ajax({
+                    url: 'update-discount-keranjang.php',
+                    type: 'POST',
+                    data: {
+                        keranjang_id: keranjangId,
+                        diskon: diskonValue
+                    }
+                });
+            }, 500);
         });
 
-        // Event listener untuk perubahan qty
+        // ===== QTY INPUT HANDLER =====
+        var qtyUpdateTimeout;
         $(document).on('input change', '.qty-input', function() {
-            hitungSubtotalItem($(this).closest('tr'));
+            var $this = $(this);
+            var row = $this.closest('tr');
+            var keranjangId = row.data('keranjang-id');
+            
+            hitungSubtotalItem(row);
+            
+            clearTimeout(qtyUpdateTimeout);
+            
+            qtyUpdateTimeout = setTimeout(function() {
+                $.ajax({
+                    url: 'update-keranjang-qty-realtime.php',
+                    type: 'POST',
+                    data: {
+                        keranjang_id: keranjangId,
+                        qty: parseFloat($this.val()) || 1
+                    }
+                });
+            }, 500);
         });
 
-        // Hitung total awal saat halaman dimuat
-        hitungTotalKeseluruhan();
+        // ===== INITIALIZATION =====
+        setTimeout(function() {
+            hitungTotalKeseluruhan();
+            var grandTotal = parseFloat($('#grand-total-hidden').val()) || 0;
+            $('.b2').val(grandTotal);
+        }, 200);
         
-        // Set nilai awal untuk b2 (total yang harus dibayar)
-        var grandTotal = parseFloat($('#grand-total-hidden').val()) || 0;
-        $('.b2').val(grandTotal);
+        window.hitungSubtotalItem = hitungSubtotalItem;
+        window.hitungTotalKeseluruhan = hitungTotalKeseluruhan;
+        window.updateDOMHargaBeli = updateDOMHargaBeli;
     });
 
+    // ===== UTILITY FUNCTIONS =====
     function hanyaAngka(evt) {
         var charCode = (evt.which) ? evt.which : event.keyCode;
         if (charCode > 31 && (charCode < 48 || charCode > 57))
@@ -712,17 +865,21 @@ $inDelete = $inParent['invoice_pembelian_number_delete'] ?? $di;
         var kembalian = bayar - total;
         
         if (kembalian < 0) {
-            kembalian = Math.abs(kembalian); // Untuk hutang, tampilkan nilai positif
+            kembalian = Math.abs(kembalian);
         }
         
         $(".c2").val(kembalian.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."));
     }
 
-    function formatRupiah(angka) {
-        return 'Rp. ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    function formatNumber(angka) {
+        var num = parseFloat(angka) || 0;
+        return num.toLocaleString('id-ID');
     }
 
-    // Fungsi untuk menghitung harga per satuan terkecil
+    function formatRupiah(angka) {
+        return 'Rp. ' + formatNumber(angka);
+    }
+
     function hitungHargaPerSatuanTerkecil(hargaBeli, konversiValue) {
         return parseFloat(hargaBeli) / parseFloat(konversiValue);
     }
