@@ -1,0 +1,144 @@
+[2025-05-30 15:41:21] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:41:21] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:41:21] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 15:41:24] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 15:41:24] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 15:41:24] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 15:43:21] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 15:43:21] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 15:43:21] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 15:53:05] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 15:53:05] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 15:53:05] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 15:53:46] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:53:46] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:53:46] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 15:53:49] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:53:49] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:53:49] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 15:53:53] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:53:53] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:53:53] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 15:53:55] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 15:53:55] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 15:53:55] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 15:55:28] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:55:28] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:55:28] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', 0)
+[2025-05-30 15:59:48] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:59:48] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:59:48] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', 0)
+[2025-05-30 15:59:50] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 15:59:50] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 15:59:50] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', 0)
+[2025-05-30 16:06:02] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:02] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:06:02] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', 0)
+[2025-05-30 16:06:20] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:20] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:06:20] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:06:22] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:22] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:06:22] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_nama, keranjang_barang_id, keranjang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_id_kasir, keranjang_id_cek, keranjang_cabang_pengirim, keranjang_cabang_tujuan, keranjang_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:06:30] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:30] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:06:30] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:06:35] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:35] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:06:35] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 16:06:37] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:37] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:06:37] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 16:06:39] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:06:39] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:06:39] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:08:15] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:08:15] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:08:15] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:09:24] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:09:24] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:09:24] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 16:09:28] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:09:28] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:09:28] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 16:11:19] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:11:19] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:11:19] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', )
+[2025-05-30 16:11:20] SCAN BARCODE: 003 dari cabang 5 oleh kasir 3
+[2025-05-30 16:11:20] Barang ditemukan: ID 91, Nama: Morfin
+[2025-05-30 16:11:20] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('Morfin', '91', '003', '1', '0', '0', '0', '3', '9135', '5', '0', '5', '500', 11.00)
+[2025-05-30 16:12:13] SCAN BARCODE: 002 dari cabang 5 oleh kasir 3
+[2025-05-30 16:12:13] Barang ditemukan: ID 89, Nama: ALLERON
+[2025-05-30 16:12:13] INSERT keranjang_transfer: INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('ALLERON', '89', '002', '1', '0', '0', '0', '3', '8935', '5', '0', '5', '300', 0.00)

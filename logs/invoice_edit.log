@@ -89,3 +89,7 @@
 [2025-05-30 11:34:05] [USER:3] [IP:::1] Calculation Debug - Subtotal Before: 250000, Diskon: 25000, After: 225000, PPN: 24750, Grand: 249750
 [2025-05-30 11:34:05] [USER:3] [IP:::1] Detail Insert - Barang ID: 90, Qty: 10, Harga: 25000, Diskon: 10%, Subtotal: 225000
 [2025-05-30 11:34:05] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-21387SJNAA Total: Rp.249.750
+[2025-05-30 15:12:01] [USER:3] [IP:::1] Transaksi gagal: Gagal update stock barang 91: Unknown column 'barang_harga_jual' in 'field list'
+[2025-05-30 15:12:27] [USER:3] [IP:::1] Transaksi gagal: Gagal update stock barang 91: Unknown column 'barang_harga_jual' in 'field list'
+[2025-05-30 15:23:49] [USER:3] [IP:::1] Detail Insert - Barang ID: 91, Qty: 1, Harga: 50000, Diskon: 0%, Margin: 11%, Subtotal: 50000
+[2025-05-30 15:23:49] [USER:3] [IP:::1] Transaksi berhasil: Invoice #sdfg Total: Rp.55.500

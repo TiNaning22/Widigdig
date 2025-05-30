@@ -390,8 +390,10 @@ if( isset($_POST["prosesTransfer"]) ){
                     <th style="width: 6%;">No.</th>
                     <th>Barang Kode</th>
                     <th>Nama</th>
+                    <th>Harga</th>
                     <th style="text-align: center;">QTY</th>
                     <th>No. SN</th>
+                    <th>Margin</th>
                     <th style="text-align: center; width: 10%">Aksi</th>
                   </tr>
                   </thead>
@@ -414,6 +416,7 @@ if( isset($_POST["prosesTransfer"]) ){
                       <td><?= $i; ?></td>
                       <td><?= $tb_kode; ?></td>
                       <td><?= $row['keranjang_transfer_nama'] ?></td>
+                      <td><?= $row['keranjang_harga'] ?></td>
                       <td style="text-align: center;"><?= $row['keranjang_transfer_qty']; ?></td>
                       <td>
                         <?php  
@@ -433,6 +436,7 @@ if( isset($_POST["prosesTransfer"]) ){
                           echo $sn;
                         ?>
                       </td>
+                      <td><?= $row['keranjang_margin'] ?> %</td>
                       <td class="orderan-online-button">
                           <?php if ( $row['keranjang_barang_option_sn'] < 1 ) : ?>
                           <a href="#!" title="Edit Data">
@@ -459,7 +463,6 @@ if( isset($_POST["prosesTransfer"]) ){
                   <?php endforeach; ?>
                 </table>
                 </div>
-                
          
                 <div class="btn-transaksi">
                   <form role="form" action="" method="POST">

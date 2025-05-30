@@ -2173,50 +2173,61 @@ function updateStockPembelian($data) {
         if (!$invoiceId) {
             throw new Exception("Gagal mendapatkan invoice ID");
         }
-        
-        // 2. Insert detail pembelian dan update stock
-        foreach($data['barang_ids'] as $index => $barangId) {
-            $barangId = intval($barangId);
-            $qty = intval($data['keranjang_qty'][$index]);
-            $harga = floatval($data['barang_harga_beli'][$index]);
-            
-            // PERBAIKAN: Konsisten menggunakan diskon_item_value dan perhitungan yang sama
-            $diskon = floatval($data['diskon_item_value'][$index] ?? 0);
-            $subtotalSebelumDiskon = $harga * $qty;
-            $diskonNominal = $subtotalSebelumDiskon * ($diskon/100);
-            $subtotal = $subtotalSebelumDiskon - $diskonNominal;
-            
-            // Log detail untuk debugging
-            // writeLog("Detail Insert - Barang ID: $barangId, Qty: $qty, Harga: $harga, Diskon: $diskon%, Subtotal: $subtotal");
-            
-            // Insert detail
-            $queryDetail = "INSERT INTO pembelian SET 
-                        pembelian_invoice = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
-                        pembelian_barang_id = $barangId,
-                        barang_id = $barangId,
-                        barang_qty = $qty,
-                        barang_harga_beli = $harga,
-                        pembelian_diskon = $diskon,
-                        pembelian_subtotal = $subtotal,
-                        pembelian_cabang = ".intval($data['invoice_pembelian_cabang']).",
-                        pembelian_date = CURDATE()";
 
-            $resultDetail = mysqli_query($conn, $queryDetail);
-            if (!$resultDetail) {
-                throw new Exception("Gagal insert detail item $barangId: " . mysqli_error($conn) . " Query: " . $queryDetail);
-            }
-            
-            // Update stock
-            $queryStock = "UPDATE barang SET 
-                          barang_stock = barang_stock + $qty,
-                          barang_harga_beli = $harga
-                          WHERE barang_id = $barangId";
-                          
-            $resultStock = mysqli_query($conn, $queryStock);
-            if (!$resultStock) {
-                throw new Exception("Gagal update stock barang $barangId: " . mysqli_error($conn));
-            }
-        }
+        // Bagian yang perlu diubah dalam loop foreach untuk update stock
+		foreach($data['barang_ids'] as $index => $barangId) {
+			$barangId = intval($barangId);
+			$qty = intval($data['keranjang_qty'][$index]);
+			$harga = floatval($data['barang_harga_beli'][$index]);
+			
+			// PERBAIKAN: Konsisten menggunakan diskon_item_value dan perhitungan yang sama
+			$diskon = floatval($data['diskon_item_value'][$index] ?? 0);
+			$subtotalSebelumDiskon = $harga * $qty;
+			$diskonNominal = $subtotalSebelumDiskon * ($diskon/100);
+			$subtotal = $subtotalSebelumDiskon - $diskonNominal;
+			
+			// Ambil margin per item jika ada, atau gunakan margin global
+			$marginPersen = 0;
+			if (isset($data['margin_item'][$index]) && !empty($data['margin_item'][$index])) {
+				// Jika ada margin per item
+				$marginPersen = floatval($data['margin_item'][$index]);
+			} elseif (isset($data['margin_persen']) && !empty($data['margin_persen'])) {
+				// Jika ada margin global
+				$marginPersen = floatval($data['margin_persen']);
+			}
+			
+			// Log detail untuk debugging
+			writeLog("Detail Insert - Barang ID: $barangId, Qty: $qty, Harga: $harga, Diskon: $diskon%, Margin: $marginPersen%, Subtotal: $subtotal");
+			
+			// Insert detail
+			$queryDetail = "INSERT INTO pembelian SET 
+						pembelian_invoice = '".mysqli_real_escape_string($conn, $data['pembelian_invoice2'])."',
+						pembelian_barang_id = $barangId,
+						barang_id = $barangId,
+						barang_qty = $qty,
+						barang_harga_beli = $harga,
+						pembelian_diskon = $diskon,
+						pembelian_subtotal = $subtotal,
+						pembelian_cabang = ".intval($data['invoice_pembelian_cabang']).",
+						pembelian_date = CURDATE()";
+
+			$resultDetail = mysqli_query($conn, $queryDetail);
+			if (!$resultDetail) {
+				throw new Exception("Gagal insert detail item $barangId: " . mysqli_error($conn) . " Query: " . $queryDetail);
+			}
+			
+			// Update stock DAN margin
+			$queryStock = "UPDATE barang SET 
+						barang_stock = barang_stock + $qty,
+						barang_harga_beli = $harga,
+						barang_margin = $marginPersen
+						WHERE barang_id = $barangId";
+						
+			$resultStock = mysqli_query($conn, $queryStock);
+			if (!$resultStock) {
+				throw new Exception("Gagal update stock barang $barangId: " . mysqli_error($conn));
+			}
+		}
         
         // 3. Clear keranjang
         $queryKeranjang = "DELETE FROM keranjang_pembelian 
@@ -2806,6 +2817,10 @@ function tambahkeranjangtransfer($data) {
   	}
 }
 
+function writeLog($message) {
+    file_put_contents("debug_log.txt", date("[Y-m-d H:i:s] ") . $message . "\n", FILE_APPEND);
+}
+
 function tambahKeranjangBarcodeTransfer($data) {
 	global $conn;
 
@@ -2816,54 +2831,61 @@ function tambahKeranjangBarcodeTransfer($data) {
 	$keranjang_id_kasir 			= $data['keranjang_id_kasir'];
 	$keranjang_cabang   			= $data['keranjang_cabang'];
 
-	// Ambil Data Barang berdasarkan Kode Barang 
-	$barang 	= mysqli_query( $conn, "select barang_id, barang_nama, barang_harga, barang_option_sn from barang where barang_kode = '".$barang_kode."' && barang_cabang = '".$keranjang_cabang."' ");
-    $br 		= mysqli_fetch_array($barang);
+	// writeLog("SCAN BARCODE: $barang_kode dari cabang $keranjang_cabang oleh kasir $keranjang_id_kasir");
 
-    $barang_id  				= $br["barang_id"];
-    $keranjang_nama  			= $br["barang_nama"];
-    $keranjang_barang_option_sn = $br["barang_option_sn"];
-    $keranjang_qty      		= 1;
-	$keranjang_barang_sn_id     = 0;
-	$keranjang_sn       		= 0;
-	$keranjang_id_cek   		= $barang_id.$keranjang_id_kasir.$keranjang_cabang;
+	$barang = mysqli_query($conn, "SELECT barang_id, barang_nama, barang_harga, barang_margin, barang_option_sn FROM barang WHERE barang_kode = '$barang_kode' AND barang_cabang = '$keranjang_cabang'");
+    $br = mysqli_fetch_array($barang);
 
-	// Kondisi jika scan Barcode Tidak sesuai
-	if ( $barang_id != null ) {
+    $barang_id = $br["barang_id"] ?? null;
 
-		// Cek STOCK
-		$barang_id_cek = mysqli_num_rows(mysqli_query($conn, "select * from keranjang_transfer where keranjang_id_cek = '$keranjang_id_cek' "));
-			
-		if ( $barang_id_cek > 0 && $keranjang_barang_option_sn < 1 ) {
-			$keranjangParent = mysqli_query( $conn, "select keranjang_transfer_qty from keranjang_transfer where keranjang_id_cek = '".$keranjang_id_cek."'");
+	if ($barang_id != null) {
+	    // writeLog("Barang ditemukan: ID $barang_id, Nama: " . $br["barang_nama"]);
+
+	    $keranjang_nama = $br["barang_nama"];
+	    $keranjang_barang_option_sn = $br["barang_option_sn"];
+		$keranjang_harga = $br["barang_harga"];
+		$keranjang_margin = $br["barang_margin"];
+	    $keranjang_qty = 1;
+		$keranjang_barang_sn_id = 0;
+		$keranjang_sn = 0;
+		$keranjang_id_cek = $barang_id . $keranjang_id_kasir . $keranjang_cabang;
+
+		$barang_id_cek = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM keranjang_transfer WHERE keranjang_id_cek = '$keranjang_id_cek'"));
+
+		if ($barang_id_cek > 0 && $keranjang_barang_option_sn < 1) {
+			$keranjangParent = mysqli_query($conn, "SELECT keranjang_transfer_qty FROM keranjang_transfer WHERE keranjang_id_cek = '$keranjang_id_cek'");
 	        $kp = mysqli_fetch_array($keranjangParent); 
-	        $kp = $kp['keranjang_transfer_qty'];
-	        $kp += $keranjang_qty;
+	        $kp = $kp['keranjang_transfer_qty'] + $keranjang_qty;
 
-	        $query = "UPDATE keranjang_transfer SET 
-						keranjang_transfer_qty   = '$kp'
-						WHERE keranjang_id_cek = $keranjang_id_cek
-						";
+	        $query = "UPDATE keranjang_transfer SET keranjang_transfer_qty = '$kp' WHERE keranjang_id_cek = '$keranjang_id_cek'";
+			// writeLog("UPDATE keranjang_transfer: $query");
+
 			mysqli_query($conn, $query);
 			return mysqli_affected_rows($conn);
 
 		} else {
-			// query insert data
-			$query = "INSERT INTO keranjang_transfer VALUES ('', '$keranjang_nama', '$barang_id', '$barang_kode_slug', '$keranjang_qty', '$keranjang_barang_sn_id', '$keranjang_barang_option_sn', '$keranjang_sn', '$keranjang_id_kasir', '$keranjang_id_cek', '$keranjang_cabang_pengirim', '$keranjang_cabang_tujuan', '$keranjang_cabang')";
+			$query = "INSERT INTO keranjang_transfer 
+				(keranjang_transfer_nama, barang_id, barang_kode_slug, keranjang_transfer_qty, keranjang_barang_sn_id, keranjang_barang_option_sn, keranjang_sn, keranjang_transfer_id_kasir, keranjang_id_cek, keranjang_pengirim_cabang, keranjang_penerima_cabang, keranjang_transfer_cabang, keranjang_harga, keranjang_margin)
+			VALUES 
+				('$keranjang_nama', '$barang_id', '$barang_kode_slug', '$keranjang_qty', '$keranjang_barang_sn_id', '$keranjang_barang_option_sn', '$keranjang_sn', '$keranjang_id_kasir', '$keranjang_id_cek', '$keranjang_cabang_pengirim', '$keranjang_cabang_tujuan', '$keranjang_cabang', '$keranjang_harga', $keranjang_margin)";
 			
-			mysqli_query($conn, $query);
+			// writeLog("INSERT keranjang_transfer: $query");
 
+			mysqli_query($conn, $query);
 			return mysqli_affected_rows($conn);
 		}
 	} else {
+		// writeLog("GAGAL: Barcode $barang_kode tidak ditemukan di barang cabang $keranjang_cabang");
 		echo '
 			<script>
 				alert("Kode Produk Tidak ada di Data Master Barang dan Coba Cek Kembali !! ");
+				console.log("DEBUG: Barcode tidak ditemukan - ' . $barang_kode . '");
 				document.location.href = "";
 			</script>
 		';
 	}
 }
+
 
 function updateSnTransfer($data){
 	global $conn;
