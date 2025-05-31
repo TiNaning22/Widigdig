@@ -1,5 +1,5 @@
 <?php
-include '_config.php';
+include 'aksi/koneksi.php';
 
 $keranjangId = $_POST['keranjang_id'];
 $diskon = $_POST['diskon'];
@@ -10,5 +10,6 @@ $updateQuery = "UPDATE keranjang SET
                 WHERE keranjang_id = '$keranjangId'";
 mysqli_query($conn, $updateQuery);
 
-echo "success";
+// Kembalikan response JSON
+echo json_encode(['success' => true]);
 ?>

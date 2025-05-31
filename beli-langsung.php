@@ -941,79 +941,86 @@ if( isset($_POST["updateStockDraft"]) ){
   });
 </script>
 <script>
+    // Fungsi validasi input angka
     function hanyaAngka(evt) {
-      var charCode = (evt.which) ? evt.which : event.keyCode
-       if (charCode > 31 && (charCode < 48 || charCode > 57))
- 
-        return false;
-      return true;
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
     }
-    function hanyaAngka1(evt) {
-      var charCode = (evt.which) ? evt.which : event.keyCode
-       if (charCode > 31 && (charCode < 48 || charCode > 57))
- 
-        return false;
-      return true;
+    
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+        if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
     }
-</script>
- <script>
-      function hitung2() {
-          var txtFirstNumberValue = document.querySelector('.a2').value;
-          var txtSecondNumberValue = document.querySelector('.b2').value;
-          var result = parseInt(txtFirstNumberValue) + parseInt(txtSecondNumberValue);
-          if (!isNaN(result)) {
-             document.querySelector('.c2').value = result;
-          }
-      }
-      function hitung3() {
-        var a = $(".d2").val();
-        var b = $(".c2").val();
-        c = a - b;
-        $(".e2").val(c);
-      }
-      function hitung7() {
-        var a = $(".h22").val();
-        var b = $(".g2").val();
-        c = a - b;
-        $(".e2").val(c);
-      }
 
-      // Diskon
-      function hitung6() {
-        document.querySelector(".g2parent").style.display = "block";
-        document.querySelector(".c2parent").style.display = "none";
-        document.querySelector(".h2parent").style.display = "block";
-        document.querySelector(".d2parent").style.display = "none";
-        var a = $(".c2").val();
-        var b = $(".f2").val();
-        c = a - b;
-        $(".g2").val(c);
-      }
+    // ================== VERSI DINAMIS ================== //
+    function hitungOngkirDinamis() {
+        var totalBelanja = parseFloat($(".a2").val()) || 0;
+        var ongkir = parseFloat($(".b2").val()) || 0;
+        var subTotal = totalBelanja + ongkir;
+        $(".c2").val(subTotal);
+        $(".g2").val(subTotal); // Untuk perhitungan diskon
+        hitungDiskonDinamis(); // Update diskon setelah ongkir berubah
+    }
 
-      // =================================== Statis ================================== //
-      // Sub Total - Bayar = kembalian
-      function hitung4() {
-        var a = $(".d21").val();
-        var b = $(".c21").val();
-        c = a - b;
-        $(".e21").val(c);
-      }
+    function hitungDiskonDinamis() {
+        var subTotal = parseFloat($(".g2").val()) || 0;
+        var diskon = parseFloat($(".f2").val()) || 0;
+        var totalSetelahDiskon = subTotal - diskon;
+        $(".c2").val(totalSetelahDiskon);
+        hitungBayarDinamis(); // Update pembayaran setelah diskon berubah
+    }
 
-      // Diskon
-      function hitung5() {
-        var a = $(".g21").val();
-        var b = $(".f21").val();
-        c = a - b;
-        $(".c21").val(c);
-      }
-      // =================================== End Statis ================================== //
+    function hitungBayarDinamis() {
+        var totalBayar = parseFloat($(".c2").val()) || 0;
+        var dibayar = parseFloat($(".d2").val()) || 0;
+        var kembalian = dibayar - totalBayar;
+        $(".e2").val(kembalian);
+    }
 
-      function isNumberKey(evt){
-       var charCode = (evt.which) ? evt.which : event.keyCode;
-       if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57))
-       return false;
-       return true;
-      }
+    // ================== VERSI STATIS ================== //
+    function hitungOngkirStatis() {
+        var totalBelanja = parseFloat($(".a2").val()) || 0;
+        var ongkir = parseFloat($(".b2").val()) || 0;
+        var subTotal = totalBelanja + ongkir;
+        $(".c21").val(subTotal);
+        $(".g21").val(subTotal); // Untuk perhitungan diskon
+        hitungDiskonStatis(); // Update diskon setelah ongkir berubah
+    }
+
+    function hitungDiskonStatis() {
+        var subTotal = parseFloat($(".g21").val()) || 0;
+        var diskon = parseFloat($(".f21").val()) || 0;
+        var totalSetelahDiskon = subTotal - diskon;
+        $(".c21").val(totalSetelahDiskon);
+        hitungBayarStatis(); // Update pembayaran setelah diskon berubah
+    }
+
+    function hitungBayarStatis() {
+        var totalBayar = parseFloat($(".c21").val()) || 0;
+        var dibayar = parseFloat($(".d21").val()) || 0;
+        var kembalian = dibayar - totalBayar;
+        $(".e21").val(kembalian);
+    }
+
+    // Inisialisasi event handlers
+    $(document).ready(function() {
+        // Versi Dinamis
+        $(".b2").on('keyup', hitungOngkirDinamis);
+        $(".f2").on('keyup', hitungDiskonDinamis);
+        $(".d2").on('keyup', hitungBayarDinamis);
+        
+        // Versi Statis
+        $(".f21").on('keyup', hitungDiskonStatis);
+        $(".d21").on('keyup', hitungBayarStatis);
+        
+        // Jalankan perhitungan awal
+        hitungOngkirDinamis();
+        hitungOngkirStatis();
+    });
 </script>
 <script>
   $(function () {
@@ -1155,33 +1162,72 @@ if( isset($_POST["updateStockDraft"]) ){
 </script>
 
 <script>
-$(document).ready(function(){
-    // Handle perubahan satuan
-    $('.satuan-dropdown').change(function(){
+  $(document).ready(function(){
+      // Handle perubahan satuan
+      $('.satuan-dropdown').change(function(){
+          var keranjangId = $(this).data('id');
+          var barangId = $(this).data('barang');
+          var satuanId = $(this).val();
+          
+          $.post('beli-langsung-update-satuan.php', {
+              keranjang_id: keranjangId,
+              barang_id: barangId,
+              satuan_id: satuanId
+          }, function(response){
+              location.reload();
+          });
+      });
+      
+      // Handle perubahan diskon
+      $('.diskon-persen').on('change', function() {
         var keranjangId = $(this).data('id');
-        var barangId = $(this).data('barang');
-        var satuanId = $(this).val();
+        var diskon = $(this).val();
+        var $row = $(this).closest('tr');
+        var harga = parseFloat($row.find('td:eq(2)').text().replace('Rp. ', '').replace(/\./g, ''));
+        var qty = parseFloat($row.find('td:eq(4)').text());
         
-        $.post('beli-langsung-update-satuan.php', {
-            keranjang_id: keranjangId,
-            barang_id: barangId,
-            satuan_id: satuanId
-        }, function(response){
-            location.reload();
+        // Kirim request update ke server
+        $.ajax({
+            url: 'beli-langsung-update-diskon.php',
+            type: 'POST',
+            data: {
+                keranjang_id: keranjangId,
+                diskon: diskon
+            },
+            dataType: 'json',
+            success: function(response) {
+                if(response.success) {
+                    // Hitung ulang subtotal
+                    var subtotal = harga * qty * (1 - (diskon/100));
+                    
+                    // Update tampilan
+                    $row.find('td:eq(6)').html('Rp. ' + subtotal.toLocaleString('id-ID'));
+                    
+                    // Hitung ulang total keseluruhan
+                    hitungTotalBelanja();
+                }
+            },
+            error: function() {
+                alert('Terjadi kesalahan saat menyimpan diskon');
+            }
         });
     });
     
-    // Handle perubahan diskon
-    $('.diskon-persen').change(function(){
-        var keranjangId = $(this).data('id');
-        var diskon = $(this).val();
-        
-        $.post('beli-langsung-update-diskon.php', {
-            keranjang_id: keranjangId,
-            diskon: diskon
-        }, function(response){
-            location.reload();
+    // Fungsi untuk menghitung total belanja
+    function hitungTotalBelanja() {
+        var total = 0;
+        $('tbody tr').each(function() {
+            var subtotal = parseFloat($(this).find('td:eq(6)').text().replace('Rp. ', '').replace(/\./g, ''));
+            if(!isNaN(subtotal)) {
+                total += subtotal;
+            }
         });
-    });
-});
+        
+        // Update total di bagian pembayaran
+        $('.a2').val(total);
+        $('.c2').val(total);
+        $('.c21').val(total + parseFloat($('.b2').val() || 0));
+        $('.g21').val(total + parseFloat($('.b2').val() || 0));
+    }
+  });
 </script>
