@@ -159,7 +159,7 @@ if( isset($_POST["updateStockDraft"]) ){
 ?>
 
 <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+<div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -320,80 +320,111 @@ if( isset($_POST["updateStockDraft"]) ){
             <!-- /.card-header -->
             <div class="card-body">
               <div class="table-auto">
+                <!-- Ganti bagian tabel keranjang dengan ini -->
                 <table id="" class="table table-bordered table-striped">
-                <thead>
-                <tr>
-                  <th style="width: 6%;">No.</th>
-                  <th>Nama</th>
-                  <th>Harga</th>
-                  <th>Satuan</th>
-                  <th style="text-align: center;">QTY</th>
-                  <th style="width: 20%;">Sub Total</th>
-                  <th style="text-align: center; width: 10%;">Aksi</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php 
-                  $i          = 1; 
-                  $total_beli = 0;
-                  $total      = 0;
-                ?>
-                <?php 
-                  foreach($keranjang as $row) : 
-
-                  $bik = $row['barang_id'];
-                  $stockParent = mysqli_query( $conn, "select barang_stock, satuan_isi_1, satuan_isi_2, satuan_isi_3 from barang where barang_id = '".$bik."'");
-                  $brg = mysqli_fetch_array($stockParent); 
-                  $tb_brg       = $brg['barang_stock'];
-
-                  // $sub_total_beli = ($row['keranjang_harga_beli'] * $row['keranjang_qty_view']) * $row['keranjang_konversi_isi'];
-                  $sub_total_beli = $row['keranjang_harga_beli'] * $row['keranjang_qty'];
-                  $sub_total      = $row['keranjang_harga'] * $row['keranjang_qty_view'];
-        
-                  if ( $row['keranjang_id_kasir'] === $_SESSION['user_id'] ) {
-                  $total_beli += $sub_total_beli;
-                  $total += $sub_total;
-                ?>
-                <tr>
-                    <td><?= $i; ?></td>
-                    <td>
-                        <?= $row['keranjang_nama'] ?><br>
-                        <small><a href="#!" id="keranjang-rak" data-id="<?= $bik; ?>"><u>Lihat Lokasi Rak</u></a></small>      
-                    </td>
-                    <td>Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?></td>
-                    <td>
-                      <?php  
-                        $satuan = $row['keranjang_satuan'];
-                        $dataSatuan = mysqli_query($conn, "select satuan_nama from satuan where satuan_id = ".$satuan." ");
-                        $dataSatuan = mysqli_fetch_array($dataSatuan);
-                        $dataSatuan = $dataSatuan['satuan_nama'];
-                        echo $dataSatuan;
-                      ?>
-                    </td>
-                    <td style="text-align: center;"><?= $row['keranjang_qty_view']; ?></td>
-                    <td>Rp. <?= number_format($sub_total, 0, ',', '.'); ?></td>
-                    <td class="orderan-online-button">
-                        <a href="barang-zoom?id=<?= base64_encode($row['barang_id']); ?>" target="_blank" title="Lihat Data">
-                          <button class="btn btn-success" name="" >
-                              <i class="fa fa-eye"></i>
-                          </button> 
-                        </a>
-                        <a href="#!" title="Edit Data">
-                          <button class="btn btn-primary" name="" class="keranjang-pembelian" id="keranjang-qty" data-id="<?= $row['keranjang_id']; ?>">
-                              <i class="fa fa-pencil"></i>
-                          </button> 
-                        </a>
-                        <a href="beli-langsung-delete?id=<?= $row['keranjang_id']; ?>&customer=<?= $_GET['customer']; ?>&r=<?= $r; ?>" title="Delete Data" onclick="return confirm('Yakin dihapus ?')">
-                            <button class="btn btn-danger" type="submit" name="hapus">
-                                <i class="fa fa-trash-o"></i>
-                            </button>
-                        </a>
-                    </td>
-                </tr>
-                <?php $i++; ?>
-                <?php } ?>
-                <?php endforeach; ?>
-              </table>
+                    <thead>
+                    <tr>
+                        <th style="width: 6%;">No.</th>
+                        <th>Nama</th>
+                        <th>Harga</th>
+                        <th style="width: 15%;">Satuan</th>
+                        <th style="text-align: center; width: 10%;">QTY</th>
+                        <th style="text-align: center; width: 10%;">Diskon (%)</th>
+                        <th style="width: 20%;">Sub Total</th>
+                        <th style="text-align: center; width: 10%;">Aksi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php 
+                        $i          = 1; 
+                        $total_beli = 0;
+                        $total      = 0;
+                    ?>
+                    <?php foreach($keranjang as $row) : 
+                        $bik = $row['barang_id'];
+                        
+                        // Query untuk mengambil data satuan
+                        $querySatuan = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
+                                          FROM barang b
+                                          LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+                                          LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
+                                          LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
+                                          WHERE b.barang_id = '$bik'";
+                        $brg = mysqli_fetch_array(mysqli_query($conn, $querySatuan));
+                        // $querySatuan = "SELECT * FROM satuan WHERE satuan_id IN (
+                        //                 SELECT satuan_id FROM barang_satuan WHERE barang_id = '".$bik."'
+                        //                 )";
+                        // $resultSatuan = mysqli_query($conn, $querySatuan);
+                        $satuanOptions = [];
+                        while($sat = mysqli_fetch_assoc($resultSatuan)) {
+                            $satuanOptions[] = $sat;
+                        }
+                        
+                        // Hitung subtotal dengan diskon
+                        $diskonPersen = $row['keranjang_diskon_persen'] ?? 0;
+                        $hargaSetelahDiskon = $row['keranjang_harga'] * (1 - ($diskonPersen/100));
+                        $sub_total = $hargaSetelahDiskon * $row['keranjang_qty_view'];
+                    ?>
+                    <tr>
+                        <td><?= $i; ?></td>
+                        <td>
+                            <?= $row['keranjang_nama'] ?><br>
+                            <small><a href="#!" id="keranjang-rak" data-id="<?= $bik; ?>"><u>Lihat Lokasi Rak</u></a></small>      
+                        </td>
+                        <td>Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?></td>
+                        <td>
+                            <select name="satuan_pembelian[]" class="form-control satuan-pilihan" 
+                                    data-barangid="<?= $row['barang_id']; ?>" 
+                                    data-keranjang-id="<?= $row['keranjang_id']; ?>">
+                                <option value="1" data-konversi="1" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
+                                    <?= $brg['satuan_1'] ?>
+                                </option>
+                                <?php if($brg['satuan_id_2'] > 0): ?>
+                                <option value="2" data-konversi="<?= $brg['satuan_isi_1'] ?>" 
+                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_1']; ?>">
+                                    <?= $brg['satuan_2'] ?> (1 <?= $brg['satuan_2'] ?> = <?= $brg['satuan_isi_1'] ?> <?= $brg['satuan_1'] ?>)
+                                </option>
+                                <?php endif; ?>
+                                <?php if($brg['satuan_id_3'] > 0): ?>
+                                <option value="3" data-konversi="<?= $brg['satuan_isi_2'] ?>" 
+                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_2']; ?>">
+                                    <?= $brg['satuan_3'] ?> (1 <?= $brg['satuan_3'] ?> = <?= $brg['satuan_isi_2'] ?> <?= $brg['satuan_1'] ?>)
+                                </option>
+                                <?php endif; ?>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><?= $row['keranjang_qty_view']; ?></td>
+                        <td style="text-align: center;">
+                            <input type="number" class="form-control diskon-persen" 
+                                  value="<?= $diskonPersen; ?>" min="0" max="100"
+                                  data-id="<?= $row['keranjang_id']; ?>">
+                        </td>
+                        <td>Rp. <?= number_format($sub_total, 0, ',', '.'); ?></td>
+                        <td class="orderan-online-button">
+                            <a href="barang-zoom?id=<?= base64_encode($row['barang_id']); ?>" target="_blank" title="Lihat Data">
+                              <button class="btn btn-success" name="" >
+                                  <i class="fa fa-eye"></i>
+                              </button> 
+                            </a>
+                            <a href="#!" title="Edit Data">
+                              <button class="btn btn-primary" name="" class="keranjang-pembelian" id="keranjang-qty" data-id="<?= $row['keranjang_id']; ?>">
+                                  <i class="fa fa-pencil"></i>
+                              </button> 
+                            </a>
+                            <a href="beli-langsung-delete?id=<?= $row['keranjang_id']; ?>&customer=<?= $_GET['customer']; ?>&r=<?= $r; ?>" title="Delete Data" onclick="return confirm('Yakin dihapus ?')">
+                                <button class="btn btn-danger" type="submit" name="hapus">
+                                    <i class="fa fa-trash-o"></i>
+                                </button>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php 
+                        $total += $sub_total;
+                        $i++; 
+                    ?>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
               </div>
               
        
@@ -926,13 +957,6 @@ if( isset($_POST["updateStockDraft"]) ){
     }
 </script>
  <script>
-      // function hitung2() {
-      // var a = $(".a2").val();
-      // var b = $(".b2").val();
-      // c = a - b;
-      // $(".c2").val(c);
-      // }
-
       function hitung2() {
           var txtFirstNumberValue = document.querySelector('.a2').value;
           var txtSecondNumberValue = document.querySelector('.b2').value;
@@ -1128,4 +1152,36 @@ if( isset($_POST["updateStockDraft"]) ){
       document.location.href = "beli-langsung?customer=<?= base64_encode(0); ?>";
     }
   }
+</script>
+
+<script>
+$(document).ready(function(){
+    // Handle perubahan satuan
+    $('.satuan-dropdown').change(function(){
+        var keranjangId = $(this).data('id');
+        var barangId = $(this).data('barang');
+        var satuanId = $(this).val();
+        
+        $.post('beli-langsung-update-satuan.php', {
+            keranjang_id: keranjangId,
+            barang_id: barangId,
+            satuan_id: satuanId
+        }, function(response){
+            location.reload();
+        });
+    });
+    
+    // Handle perubahan diskon
+    $('.diskon-persen').change(function(){
+        var keranjangId = $(this).data('id');
+        var diskon = $(this).val();
+        
+        $.post('beli-langsung-update-diskon.php', {
+            keranjang_id: keranjangId,
+            diskon: diskon
+        }, function(response){
+            location.reload();
+        });
+    });
+});
 </script>
