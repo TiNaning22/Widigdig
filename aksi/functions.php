@@ -2817,9 +2817,9 @@ function tambahkeranjangtransfer($data) {
   	}
 }
 
-function writeLog($message) {
-    file_put_contents("debug_log.txt", date("[Y-m-d H:i:s] ") . $message . "\n", FILE_APPEND);
-}
+// function writeLog($message) {
+//     file_put_contents("debug_log.txt", date("[Y-m-d H:i:s] ") . $message . "\n", FILE_APPEND);
+// }
 
 function tambahKeranjangBarcodeTransfer($data) {
 	global $conn;

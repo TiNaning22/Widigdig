@@ -1,63 +1,100 @@
 <?php 
-
-function writeLog($message) {
-    $logDir = __DIR__ . '/logs/';
-    if (!file_exists($logDir)) {
-        mkdir($logDir, 0755, true);
+// Define writeLog function only if not already declared
+if (!function_exists('writeLog')) {
+    function writeLog($message) {
+        $logDir = __DIR__ . '/logs/';
+        if (!file_exists($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+        $logFile = $logDir . 'invoice_edit.log';
+        $timestamp = date("Y-m-d H:i:s");
+        $user = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'unknown';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $logMessage = "[{$timestamp}] [USER:{$user}] [IP:{$ip}] {$message}" . PHP_EOL;
+        file_put_contents($logFile, $logMessage, FILE_APPEND);
     }
-    $logFile = $logDir . 'invoice_edit.log';
-    $timestamp = date("Y-m-d H:i:s");
-    $user = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'unknown';
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    $logMessage = "[{$timestamp}] [USER:{$user}] [IP:{$ip}] {$message}" . PHP_EOL;
-    file_put_contents($logFile, $logMessage, FILE_APPEND);
 }
 
-error_reporting(0);
 include '_header.php';
 include '_nav.php';
 include '_sidebar.php';
 
-if ($levelLogin === "kurir") {
-    echo "<script>document.location.href = 'bo';</script>";
+if (!isset($levelLogin)) {
+    die("Error: \$levelLogin not defined. Please check your authentication system.");
 }
 
+if (!isset($dataTokoLogin)) {
+    die("Error: \$dataTokoLogin not defined. Please check your authentication system.");
+}
+
+if (!isset($sessionCabang)) {
+    die("Error: \$sessionCabang not defined. Please check your session management.");
+}
+
+if (!isset($conn)) {
+    die("Error: Database connection (\$conn) not defined. Please check your database connection file.");
+}
+
+// Check user level
+if ($levelLogin === "kurir") {
+    echo "<script>document.location.href = 'bo';</script>";
+    exit; // Important: stop execution after redirect
+}
+
+// Check toko status
 if ($dataTokoLogin['toko_status'] < 1) {
     echo "<script>
         alert('Status Toko Tidak Aktif!');
         document.location.href = 'bo';
     </script>";
+    exit; // Important: stop execution after redirect
 }
 
 // Insert via Barcode
 if(isset($_POST["inputbarcode"])){
-    if(tambahKeranjangPembelianBarcode($_POST) > 0) {
-        echo "<script>document.location.href = '';</script>";
-    } 
+    if(function_exists('tambahKeranjangPembelianBarcode')) {
+        if(tambahKeranjangPembelianBarcode($_POST) > 0) {
+            echo "<script>document.location.href = '';</script>";
+            exit;
+        }
+    } else {
+        die("Error: Function tambahKeranjangPembelianBarcode not found. Please check your functions file.");
+    }
 }
 
 // Update QTY
 if(isset($_POST["update"])){
-    if(updateQTYpembelian($_POST) === 0) {
-        echo "<script>alert('Belum Input QTY!');</script>";
-    } elseif(updateQTYpembelian($_POST) > 0) {
-        echo "<script>document.location.href = '';</script>";
+    if(function_exists('updateQTYpembelian')) {
+        if(updateQTYpembelian($_POST) === 0) {
+            echo "<script>alert('Belum Input QTY!');</script>";
+        } elseif(updateQTYpembelian($_POST) > 0) {
+            echo "<script>document.location.href = '';</script>";
+            exit;
+        }
+    } else {
+        die("Error: Function updateQTYpembelian not found. Please check your functions file.");
     }
 }
 
 // Finalize Purchase
-$inv = $_POST["pembelian_invoice_parent2"];
-if(isset($_POST["updateStock"])){
+if(isset($_POST["updateStock"]) && isset($_POST["pembelian_invoice_parent2"])){
+    $inv = mysqli_real_escape_string($conn, $_POST["pembelian_invoice_parent2"]);
     $sql = mysqli_query($conn, "SELECT * FROM invoice_pembelian WHERE pembelian_invoice_parent='$inv' AND invoice_pembelian_cabang = '$sessionCabang'");
     
     if(mysqli_num_rows($sql) == 0){
-        if(updateStockPembelian($_POST) > 0) {
-            echo "<script>document.location.href = 'invoice-pembelian?no=".$inv."';</script>";
+        if(function_exists('updateStockPembelian')) {
+            if(updateStockPembelian($_POST) > 0) {
+                echo "<script>document.location.href = 'invoice-pembelian?no=".$inv."';</script>";
+                exit;
+            } else {
+                echo "<script>alert('Transaksi Gagal');</script>";
+            }
         } else {
-            echo "<script>alert('Transaksi Gagal');</script>";
+            die("Error: Function updateStockPembelian not found. Please check your functions file.");
         }
     } else {
         echo "<script>document.location.href = 'invoice-pembelian?no=".$inv."';</script>";
+        exit;
     }
 }
 ?>
@@ -70,7 +107,7 @@ if(isset($_POST["updateStock"])){
                 <div class="col-sm-6">
                     <h1>Transaksi Pembelian Produk</h1>
                     <div class="btn-cash-piutang">
-                        <?php $r = empty(abs((int)base64_decode($_GET['r']))) ? 0 : abs((int)base64_decode($_GET['r'])); ?>
+                        <?php $r = empty(abs((int)base64_decode($_GET['r'] ?? ''))) ? 0 : abs((int)base64_decode($_GET['r'])); ?>
                         <?php if ($r == 1) : ?>
                             <a href="transaksi-pembelian" class="btn btn-default">Cash</a>
                             <a href="transaksi-pembelian?r=MQ==" class="btn btn-primary">Hutang</a>
@@ -142,7 +179,7 @@ if(isset($_POST["updateStock"])){
                         <input type="text" class="form-control" name="invoice_pembelian_number_input" required>
                     </div>  
                     <input type="hidden" name="invoice_pembelian_number_parent" value="<?= date("Ymd").(mysqli_num_rows(mysqli_query($conn,"SELECT * FROM invoice_pembelian")) + 1); ?>">    
-                    <input type="hidden" name="invoice_pembelian_number_user" value="<?= $_SESSION['user_id']; ?>">    
+                    <input type="hidden" name="invoice_pembelian_number_user" value="<?= $_SESSION['user_id'] ?? ''; ?>">    
                     <input type="hidden" name="invoice_pembelian_cabang" value="<?= $sessionCabang; ?>">
                 </div>
                 <div class="modal-footer">
@@ -167,7 +204,7 @@ if(isset($_POST["updateStock"])){
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary" id="invoice_edit" data-id="<?= $invoice['id']; ?>">Simpan Perubahan</button>
+                    <button type="submit" class="btn btn-primary" id="invoice_edit">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -201,53 +238,61 @@ $(document).ready(function(){
         if (typeof console !== 'undefined') {
             console.log('[CLIENT] ' + message);
         }
-        // Bisa juga dikirim ke server untuk logging terpusat
-        $.post('log-client.php', {message: message});
+        // Optional: Send to server for logging
+        // $.post('log-client.php', {message: message});
     }
-    // Load keranjang
-    $(document).ready(function(){
-    // Load keranjang
-    $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
     
-    // Cek apakah DataTable sudah diinisialisasi
+    // Load keranjang
+    $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>', function(response, status, xhr) {
+        if (status == "error") {
+            console.error('Error loading keranjang:', xhr.status, xhr.statusText);
+            $('#transaksi-pembelian-keranjang').html('<div class="alert alert-danger">Error loading cart content. Status: ' + xhr.status + '</div>');
+        }
+    });
+    
+    // Initialize DataTable
     if (!$.fn.DataTable.isDataTable('#example1')) {
-          var table = $('#example1').DataTable({ 
-              "processing": true,
-              "serverSide": true,
-              "ajax": "transaksi-pembelian-search-data.php?cabang=<?= $sessionCabang; ?>",
-              "columnDefs": [
-                  {
-                      "targets": 3,
-                      "render": $.fn.dataTable.render.number('.', '', '', 'Rp. ')
-                  },
-                  {
-                      "targets": -1,
-                      "data": null,
-                      "defaultContent": `<center><button class='btn btn-primary tblInsert' title="Tambah"><i class="fa fa-shopping-cart"></i> Pilih</button></center>` 
-                  }
-              ],
-              "destroy": true // Tambahkan ini untuk memungkinkan re-inisialisasi
-          });
+        var table = $('#example1').DataTable({ 
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "transaksi-pembelian-search-data.php?cabang=<?= $sessionCabang; ?>",
+                "error": function(xhr, error, code) {
+                    console.error('DataTable AJAX error:', error, xhr);
+                }
+            },
+            "columnDefs": [
+                {
+                    "targets": 3,
+                    "render": $.fn.dataTable.render.number('.', '', '', 'Rp. ')
+                },
+                {
+                    "targets": -1,
+                    "data": null,
+                    "defaultContent": `<center><button class='btn btn-primary tblInsert' title="Tambah"><i class="fa fa-shopping-cart"></i> Pilih</button></center>` 
+                }
+            ],
+            "destroy": true
+        });
 
-          table.on('draw.dt', function () {
-              var info = table.page.info();
-              table.column(0, { search: 'applied', order: 'applied', page: 'applied' }).nodes().each(function (cell, i) {
-                  cell.innerHTML = i + 1 + info.start;
-              });
-          });
+        table.on('draw.dt', function () {
+            var info = table.page.info();
+            table.column(0, { search: 'applied', order: 'applied', page: 'applied' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + info.start;
+            });
+        });
 
-          $('#example1 tbody').on('click', '.tblInsert', function () {
-              var data = table.row($(this).parents('tr')).data();
-              window.location.href = "transaksi-pembelian-add?id="+ btoa(data[0]) + "&r=<?= $r; ?>";
-          });
-      }
-  });
+        $('#example1 tbody').on('click', '.tblInsert', function () {
+            var data = table.row($(this).parents('tr')).data();
+            window.location.href = "transaksi-pembelian-add?id="+ btoa(data[0]) + "&r=<?= $r; ?>";
+        });
+    }
 
-  $(document).on('click', '.invoice-edit-btn', function(e) {
+    // Invoice edit handler
+    $(document).on('click', '.invoice-edit-btn', function(e) {
         e.preventDefault();
         var invoiceId = $(this).data('id');
-        console.log('Invoice ID:', invoiceId);
-
+        
         if (!invoiceId) {
             alert('Invoice ID tidak ditemukan');
             return;
@@ -268,127 +313,104 @@ $(document).ready(function(){
         });
     });
 
-  // Handle submit form edit
-  $('#form-edit-invoice').submit(function(e) {
-      e.preventDefault();
-      
-      // Tampilkan loading
-      Swal.fire({
-          title: 'Memproses',
-          html: 'Sedang menyimpan perubahan...',
-          allowOutsideClick: false,
-          didOpen: () => {
-              Swal.showLoading();
-          }
-      });
-      
-      $.ajax({
-          url: 'update-invoice.php',
-          type: 'POST',
-          data: $(this).serialize(),
-          dataType: 'json', // Pastikan ini ada
-          success: function(response) {
-              Swal.close();
-              
-              // Tidak perlu parse karena sudah JSON (dataType: 'json')
-              if(response.status == 'success') {
-                  $('#modal-edit-invoice').modal('hide');
-                  Swal.fire('Sukses', response.message || 'Invoice berhasil diperbarui', 'success');
-                  
-                  // Refresh data
-                  $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
-              } else {
-                  Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
-              }
-          },
-          error: function(xhr, status, error) {
-              Swal.close();
-              
-              console.error("Error:", error);
-              console.log("Response:", xhr);
-              
-              try {
-                  // Coba parse error response jika mungkin
-                  var errResponse = JSON.parse(xhr);
-                  Swal.fire('Error', errResponse.message || 'Terjadi kesalahan saat update', 'error');
-              } catch(e) {
-                  // Jika tidak bisa parse, tampilkan error umum
-                  Swal.fire('Error', 'Terjadi kesalahan: ' + error, 'error');
-              }
-          }
-      });
-  });
-
-  $('#form-tambah-invoice').submit(function(e){
-    e.preventDefault();
-      $.ajax({
-          url: "transaksi-pembelian-input-no-invoice.php",
-          type: "post",
-          data: $(this).serialize(),
-          dataType: 'json', // Pastikan ini ada
-          success: function(response) {
-              // Tidak perlu parse karena sudah JSON
-              if (response.hasil === "sukses") {
-                  $('#modal-tambah-invoice').modal('hide');
-                  $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
-                  Swal.fire('Sukses', 'Data Berhasil Disimpan', 'success');
-              } else {
-                  Swal.fire('Error', response.error || 'Terjadi kesalahan', 'error');
-              }
-          },
-          error: function(xhr, status, error) {
-              console.error(xhr.responseText);
-              try {
-                  // Coba parse error response
-                  var errResponse = JSON.parse(xhr.responseText);
-                  Swal.fire('Error', errResponse.message || 'Terjadi kesalahan', 'error');
-              } catch(e) {
-                  // Jika tidak bisa parse, tampilkan raw error
-                  Swal.fire('Error', 'Terjadi kesalahan: ' + xhr.statusText, 'error');
-              }
-          }
-      });
-  });
-
-    table.on('draw.dt', function () {
-        var info = table.page.info();
-        table.column(0, { search: 'applied', order: 'applied', page: 'applied' }).nodes().each(function (cell, i) {
-            cell.innerHTML = i + 1 + info.start;
-        });
-    });
-
-    $('#example1 tbody').on('click', '.tblInsert', function () {
-        var data = table.row($(this).parents('tr')).data();
-        window.location.href = "transaksi-pembelian-add?id="+ btoa(data[0]) + "&r=<?= $r; ?>";
-    });
-
-    // Form Invoice
-    $("#form-edit-invoice").submit(function(e) {
+    // Form edit invoice submit handler
+    $('#form-edit-invoice').submit(function(e) {
         e.preventDefault();
         
-        var dataform = $("#form-edit-invoice").serialize();
+        // Show loading
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Memproses',
+                html: 'Sedang menyimpan perubahan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+        
         $.ajax({
-          url: "transaksi-pembelian-edit-invoice-proses.php",
-          data: dataform,
-          type: "post",
-          success: function(result) {
-            var hasil = JSON.parse(result);
-            if (hasil.hasil !== "sukses") {
-            } else {
-              $('#modal-id-3').modal('hide');
-              Swal.fire(
-                'Sukses !!',
-                'Data Berhasil diupdate',
-                'success'
-              );
-              $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
+            url: 'update-invoice.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.close();
+                }
+                
+                if(response.status == 'success') {
+                    $('#modal-edit-invoice').modal('hide');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Sukses', response.message || 'Invoice berhasil diperbarui', 'success');
+                    } else {
+                        alert('Invoice berhasil diperbarui');
+                    }
+                    
+                    // Refresh data
+                    $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
+                    } else {
+                        alert('Error: ' + (response.message || 'Terjadi kesalahan'));
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.close();
+                }
+                
+                console.error("Error:", error, xhr);
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'Terjadi kesalahan: ' + error, 'error');
+                } else {
+                    alert('Terjadi kesalahan: ' + error);
+                }
             }
-          }
         });
-      });
+    });
 
-    // Edit Harga
-    $(document).on('click', '.keranjang-pembelian', function(e) { // Ganti selector ke class
+    // Form tambah invoice submit handler
+    $('#form-tambah-invoice').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: "transaksi-pembelian-input-no-invoice.php",
+            type: "post",
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.hasil === "sukses") {
+                    $('#modal-tambah-invoice').modal('hide');
+                    $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Sukses', 'Data Berhasil Disimpan', 'success');
+                    } else {
+                        alert('Data Berhasil Disimpan');
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', response.error || 'Terjadi kesalahan', 'error');
+                    } else {
+                        alert('Error: ' + (response.error || 'Terjadi kesalahan'));
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'Terjadi kesalahan: ' + error, 'error');
+                } else {
+                    alert('Terjadi kesalahan: ' + error);
+                }
+            }
+        });
+    });
+
+    // Edit harga handler
+    $(document).on('click', '.keranjang-pembelian', function(e) {
         e.preventDefault();
         $("#modal-id-2").modal('show');
         
@@ -397,8 +419,9 @@ $(document).ready(function(){
         }, function(html) {
             $("#data-keranjang-pembelian").html(html);
         });
-    })
+    });
 
+    // Form edit harga submit handler
     $("#form-edit-harga-beli").submit(function(e) {
         e.preventDefault();
         $.ajax({
@@ -409,7 +432,11 @@ $(document).ready(function(){
                 var hasil = JSON.parse(result);
                 if (hasil.hasil === "sukses") {
                     $('#modal-id-2').modal('hide');
-                    Swal.fire('Sukses', 'Data Berhasil diupdate', 'success');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Sukses', 'Data Berhasil diupdate', 'success');
+                    } else {
+                        alert('Data Berhasil diupdate');
+                    }
                     $('#transaksi-pembelian-keranjang').load('transaksi-pembelian-keranjang.php?r=<?= $r; ?>');
                 }
             }
