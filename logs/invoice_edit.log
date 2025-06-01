@@ -93,3 +93,11 @@
 [2025-05-30 15:12:27] [USER:3] [IP:::1] Transaksi gagal: Gagal update stock barang 91: Unknown column 'barang_harga_jual' in 'field list'
 [2025-05-30 15:23:49] [USER:3] [IP:::1] Detail Insert - Barang ID: 91, Qty: 1, Harga: 50000, Diskon: 0%, Margin: 11%, Subtotal: 50000
 [2025-05-30 15:23:49] [USER:3] [IP:::1] Transaksi berhasil: Invoice #sdfg Total: Rp.55.500
+[2025-06-01 14:43:31] [USER:3] [IP:::1] Detail Insert - Barang ID: 92, Qty: 4, Harga: 3000, Diskon: 0%, Margin: 0%, Subtotal: 12000
+[2025-06-01 14:43:31] [USER:3] [IP:::1] Transaksi berhasil: Invoice #fghjkl121 Total: Rp.13.320
+[2025-06-01 14:45:01] [USER:3] [IP:::1] Detail Insert - Barang ID: 92, Qty: 5, Harga: 5000, Diskon: 0%, Margin: 85%, Subtotal: 25000
+[2025-06-01 14:45:01] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-21893871 Total: Rp.27.750
+[2025-06-01 15:14:34] [USER:3] [IP:::1] Detail Insert - Barang ID: 92, Qty: 1, Harga: 2000, Diskon: 5%, Margin: 0%, Subtotal: 1900
+[2025-06-01 15:14:34] [USER:3] [IP:::1] Transaksi berhasil: Invoice #1236712JJH Total: Rp.2.109
+[2025-06-01 15:15:38] [USER:3] [IP:::1] Detail Insert - Barang ID: 92, Qty: 5, Harga: 2000, Diskon: 5%, Margin: 0%, Subtotal: 9500
+[2025-06-01 15:15:38] [USER:3] [IP:::1] Transaksi berhasil: Invoice #INV-21IBHD Total: Rp.10.545

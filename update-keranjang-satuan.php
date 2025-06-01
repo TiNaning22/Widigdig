@@ -1,45 +1,37 @@
 <?php
-// File: update-keranjang-satuan.php
-include 'aksi/koneksi.php'; // Sesuaikan dengan file koneksi database Anda
+session_start();
+include 'aksi/koneksi.php';
+
+header('Content-Type: application/json');
 
 if ($_POST) {
-    $keranjang_id = $_POST['keranjang_id'];
-    $satuan_pilihan = $_POST['satuan_pilihan'];
-    $harga_konversi = $_POST['harga_konversi'];
-    $konversi_value = $_POST['konversi_value'];
+    $keranjang_id = mysqli_real_escape_string($conn, $_POST['keranjang_id']);
+    $satuan_pilihan = mysqli_real_escape_string($conn, $_POST['satuan_pilihan']);
+    $harga_satuan = mysqli_real_escape_string($conn, $_POST['harga_satuan']);
+    $konversi = mysqli_real_escape_string($conn, $_POST['konversi']);
     
-    try {
-        // Update keranjang dengan harga dan satuan baru
-        $query = "UPDATE keranjang_pembelian SET 
-                    keranjang_harga = '$harga_konversi',
-                    keranjang_satuan_pilihan = '$satuan_pilihan',
-                    keranjang_konversi_value = '$konversi_value'
-                  WHERE keranjang_id = '$keranjang_id'";
-        
-        $result = mysqli_query($conn, $query);
-        
-        if ($result) {
-            echo json_encode([
-                'status' => 'success',
-                'message' => 'Keranjang berhasil diupdate'
-            ]);
-        } else {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Gagal update keranjang: ' . mysqli_error($conn)
-            ]);
-        }
-        
-    } catch (Exception $e) {
+    // Update keranjang dengan harga satuan yang sudah benar
+    $query = "UPDATE keranjang_pembelian SET 
+              keranjang_harga = '$harga_satuan',
+              keranjang_satuan_pilihan = '$satuan_pilihan'
+              WHERE keranjang_id = '$keranjang_id' 
+              AND keranjang_id_kasir = '".$_SESSION['user_id']."'";
+    
+    $result = mysqli_query($conn, $query);
+    
+    if ($result) {
         echo json_encode([
-            'status' => 'error',
-            'message' => 'Error: ' . $e->getMessage()
+            'status' => 'success', 
+            'message' => 'Satuan berhasil diupdate',
+            'harga_baru' => $harga_satuan
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'Gagal update satuan: ' . mysqli_error($conn)
         ]);
     }
 } else {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Method not allowed'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
 }
 ?>

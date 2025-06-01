@@ -32,11 +32,11 @@ foreach($keranjang as $row) :
         
         // Ambil data barang termasuk harga beli
         $query = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
-                 FROM barang b
-                 LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
-                 LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
-                 LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
-                 WHERE b.barang_id = '$bik'";
+                FROM barang b
+                LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+                LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
+                LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
+                WHERE b.barang_id = '$bik'";
         $brg = mysqli_fetch_array(mysqli_query($conn, $query));
         
         $subtotal = $row['keranjang_harga'] * $row['keranjang_qty'];
@@ -125,11 +125,11 @@ $marginPersen = max(-999, min(9999, $marginPersen));
                     foreach($keranjang as $row) : 
                         $bik = $row['barang_id'];
                         $query = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
-                                 FROM barang b
-                                 LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
-                                 LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
-                                 LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
-                                 WHERE b.barang_id = '$bik'";
+                                FROM barang b
+                                LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+                                LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
+                                LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
+                                WHERE b.barang_id = '$bik'";
                         $brg = mysqli_fetch_array(mysqli_query($conn, $query));
                         
                         $subtotal = $row['keranjang_harga'] * $row['keranjang_qty'];
@@ -146,19 +146,31 @@ $marginPersen = max(-999, min(9999, $marginPersen));
                             <select name="satuan_pembelian[]" class="form-control satuan-pilihan" 
                                     data-barangid="<?= $row['barang_id']; ?>" 
                                     data-keranjang-id="<?= $row['keranjang_id']; ?>">
-                                <option value="1" data-konversi="1" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
-                                    <?= $brg['satuan_1'] ?>
+                                
+                                <!-- Satuan 1 (Utama) -->
+                                <option value="1" 
+                                        data-konversi="1" 
+                                        data-harga="<?= $brg['barang_harga']; ?>">
+                                    <?= $brg['satuan_1'] ?> - Rp <?= number_format($brg['barang_harga']) ?>
                                 </option>
-                                <?php if($brg['satuan_id_2'] > 0): ?>
-                                <option value="2" data-konversi="<?= $brg['satuan_isi_1'] ?>" 
-                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_1']; ?>">
-                                    <?= $brg['satuan_2'] ?> (1 <?= $brg['satuan_2'] ?> = <?= $brg['satuan_isi_1'] ?> <?= $brg['satuan_1'] ?>)
+                                
+                                <!-- Satuan 2 (jika ada) -->
+                                <?php if($brg['satuan_id_2'] > 0 && $brg['satuan_isi_2'] > 0): ?>
+                                <option value="2" 
+                                        data-konversi="<?= $brg['satuan_isi_2'] ?>" 
+                                        data-harga="<?= $brg['barang_harga_s2']; ?>">
+                                    <?= $brg['satuan_2'] ?> - Rp <?= number_format($brg['barang_harga_s2']) ?>
+                                    (1 <?= $brg['satuan_1'] ?> = <?= $brg['satuan_2'] ?> <?= $brg['satuan_isi_2'] ?>)
                                 </option>
                                 <?php endif; ?>
-                                <?php if($brg['satuan_id_3'] > 0): ?>
-                                <option value="3" data-konversi="<?= $brg['satuan_isi_2'] ?>" 
-                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_2']; ?>">
-                                    <?= $brg['satuan_3'] ?> (1 <?= $brg['satuan_3'] ?> = <?= $brg['satuan_isi_2'] ?> <?= $brg['satuan_1'] ?>)
+                                
+                                <!-- Satuan 3 (jika ada) -->
+                                <?php if($brg['satuan_id_3'] > 0 && $brg['satuan_isi_3'] > 0): ?>
+                                <option value="3" 
+                                        data-konversi="<?= $brg['satuan_isi_3'] ?>" 
+                                        data-harga="<?= $brg['barang_harga_s3']; ?>">
+                                    <?= $brg['satuan_3'] ?> - Rp <?= number_format($brg['barang_harga_s3']) ?>
+                                    (1 <?= $brg['satuan_1'] ?> = <?= $brg['satuan_3'] ?> <?= $brg['satuan_isi_3'] ?>)
                                 </option>
                                 <?php endif; ?>
                             </select>
@@ -592,50 +604,185 @@ $marginPersen = max(-999, min(9999, $marginPersen));
             });
         });
 
-        // ===== SATUAN CHANGE HANDLER =====
+        // ===== SATUAN CHANGE HANDLER DENGAN KONVERSI OTOMATIS =====
         $(document).on('change', '.satuan-pilihan', function() {
-            var $this = $(this);
-            var row = $this.closest('tr');
-            var barangId = $this.data('barangid');
-            var satuanTerpilih = $this.val();
-            var konversiValue = $this.find('option:selected').data('konversi');
-            var keranjangId = row.data('keranjang-id');
+            var $select = $(this);
+            var selectedOption = $select.find('option:selected');
+            var keranjangId = $select.data('keranjang-id');
+            var barangId = $select.data('barangid');
+            var satuanPilihan = $select.val();
+            var konversi = parseFloat(selectedOption.data('konversi')) || 1;
+            var hargaSatuan = parseFloat(selectedOption.data('harga')) || 0;
+            var $row = $select.closest('tr');
             
-            $this.prop('disabled', true);
+            console.log('Satuan dipilih:', satuanPilihan);
+            console.log('Konversi:', konversi);
+            console.log('Harga satuan dari data:', hargaSatuan);
             
-            updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId, function() {
-                $this.prop('disabled', false);
-            });
-        });
-        
-        // ===== FUNGSI UPDATE HARGA BERDASARKAN SATUAN =====
-        function updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId, callback) {
+            // Ambil harga dasar (satuan 1) untuk perhitungan konversi
+            var $satuanUtama = $select.find('option[value="1"]');
+            var hargaDasar = parseFloat($satuanUtama.data('harga')) || 0;
+            
+            // Hitung harga berdasarkan konversi jika harga satuan tidak tersedia
+            var hargaFinal = hargaSatuan;
+            if (hargaSatuan <= 0 && hargaDasar > 0) {
+                // Jika satuan lebih besar (misal: 1 dus = 12 pcs), maka harga dus = harga pcs * konversi
+                hargaFinal = hargaDasar * konversi;
+                console.log('Harga dihitung dari konversi:', hargaFinal);
+            }
+            
+            // Update harga di tampilan
+            updateHargaTampilan($row, hargaFinal);
+            
+            // Update keranjang via AJAX
             $.ajax({
-                url: 'get-harga-satuan.php',
-                type: 'POST',
+                url: 'update-keranjang-satuan.php',
+                method: 'POST',
                 data: {
+                    keranjang_id: keranjangId,
                     barang_id: barangId,
-                    satuan_pilihan: satuanTerpilih,
-                    konversi: konversiValue
+                    satuan_pilihan: satuanPilihan,
+                    harga_satuan: hargaFinal,
+                    konversi: konversi
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (response.status === 'success') {
-                        var hargaKonversi = parseFloat(response.harga_konversi) || 0;
-                        updateDOMHargaBeli(keranjangId, hargaKonversi);
-                        updateKeranjangSatuan(keranjangId, satuanTerpilih, hargaKonversi, konversiValue);
-                        
-                        if (callback) callback();
+                    if(response.status === 'success') {
+                        console.log('Keranjang berhasil diupdate');
+                        // Hitung ulang subtotal dan total
+                        hitungSubtotalItem($row);
                     } else {
-                        alert('Gagal mengambil harga satuan: ' + (response.message || 'Unknown error'));
-                        if (callback) callback();
+                        alert('Gagal update satuan: ' + response.message);
+                        // Kembalikan ke pilihan sebelumnya jika gagal
+                        $select.val($select.data('previous-value') || '1');
                     }
                 },
-                error: function(xhr, status, error) {
-                    alert('Terjadi kesalahan saat mengambil harga satuan');
-                    if (callback) callback();
+                error: function() {
+                    alert('Error dalam update satuan');
+                    // Kembalikan ke pilihan sebelumnya jika gagal
+                    $select.val($select.data('previous-value') || '1');
                 }
             });
+            
+            // Simpan nilai sebelumnya untuk rollback jika error
+            $select.data('previous-value', satuanPilihan);
+        });
+
+        // ===== FUNGSI UPDATE HARGA TAMPILAN =====
+        function updateHargaTampilan($row, hargaBaru) {
+            var keranjangId = $row.data('keranjang-id');
+            var $hargaText = $row.find('.harga-text');
+            
+            if ($hargaText.length) {
+                $hargaText.attr('data-harga', hargaBaru);
+                $hargaText.data('harga', hargaBaru);
+                $hargaText.text('Rp. ' + formatNumber(hargaBaru));
+                
+                console.log('Harga tampilan diupdate ke:', hargaBaru);
+            }
+            
+            // Update input tersembunyi jika ada
+            var $hargaInput = $row.find('input[name="barang_harga_beli[]"]');
+            if ($hargaInput.length) {
+                $hargaInput.val(hargaBaru);
+            }
+        }
+
+        // ===== FUNGSI HITUNG HARGA BERDASARKAN KONVERSI =====
+        function hitungHargaKonversi(hargaDasar, konversi, tipeSatuan) {
+            var hargaDasarFloat = parseFloat(hargaDasar) || 0;
+            var konversiFloat = parseFloat(konversi) || 1;
+            
+            if (hargaDasarFloat <= 0) {
+                return 0;
+            }
+            
+            // Untuk satuan yang lebih besar (misal: dus), kalikan dengan konversi
+            // Untuk satuan yang lebih kecil, bagi dengan konversi
+            switch(tipeSatuan) {
+                case '1': // Satuan dasar
+                    return hargaDasarFloat;
+                case '2': // Satuan ke-2 (biasanya lebih besar)
+                    return hargaDasarFloat * konversiFloat;
+                case '3': // Satuan ke-3 (biasanya lebih besar)
+                    return hargaDasarFloat * konversiFloat;
+                default:
+                    return hargaDasarFloat;
+            }
+        }
+
+        // ===== FUNGSI AUTO-CALCULATE SEMUA HARGA SATUAN =====
+        function autoCalculateAllSatuanHarga() {
+            $('.satuan-pilihan').each(function() {
+                var $select = $(this);
+                var $options = $select.find('option');
+                var hargaDasar = 0;
+                
+                // Ambil harga dasar dari satuan 1
+                $options.each(function() {
+                    var $option = $(this);
+                    if ($option.val() === '1') {
+                        hargaDasar = parseFloat($option.data('harga')) || 0;
+                        return false; // break
+                    }
+                });
+                
+                // Update harga untuk setiap opsi berdasarkan konversi
+                $options.each(function() {
+                    var $option = $(this);
+                    var satuanValue = $option.val();
+                    var konversi = parseFloat($option.data('konversi')) || 1;
+                    var hargaExisting = parseFloat($option.data('harga')) || 0;
+                    
+                    // Jika harga belum ada atau = 0, hitung berdasarkan konversi
+                    if (hargaExisting <= 0 && hargaDasar > 0 && satuanValue !== '1') {
+                        var hargaKonversi = hitungHargaKonversi(hargaDasar, konversi, satuanValue);
+                        $option.data('harga', hargaKonversi);
+                        $option.attr('data-harga', hargaKonversi);
+                        
+                        // Update text option untuk menampilkan harga baru
+                        var satuanNama = $option.text().split(' - ')[0];
+                        var konversiText = $option.text().includes('(') ? 
+                            ' ' + $option.text().split('(')[1] : '';
+                        $option.text(satuanNama + ' - Rp ' + formatNumber(hargaKonversi) + 
+                                   (konversiText ? '(' + konversiText : ''));
+                    }
+                });
+            });
+        }
+
+        // ===== INISIALISASI HARGA SATUAN OTOMATIS =====
+        $(document).ready(function() {
+            // Jalankan auto calculate setelah DOM ready
+            setTimeout(function() {
+                autoCalculateAllSatuanHarga();
+            }, 500);
+        });
+
+        function updateRowDisplay(keranjangId) {
+            // Function untuk update tampilan row tanpa reload halaman
+            var row = $('tr[data-keranjang-id="' + keranjangId + '"]');
+            if (row.length) {
+                hitungSubtotalItem(row);
+            }
+        }
+        
+        // ===== FUNGSI UPDATE HARGA BERDASARKAN SATUAN (LEGACY - DIPERBAIKI) =====
+        function updateHargaBerdasarkanSatuan(row, barangId, satuanTerpilih, konversiValue, keranjangId, callback) {
+            // Ambil harga dasar dari row
+            var $satuanSelect = row.find('.satuan-pilihan');
+            var $satuanUtama = $satuanSelect.find('option[value="1"]');
+            var hargaDasar = parseFloat($satuanUtama.data('harga')) || 0;
+            
+            // Hitung harga berdasarkan konversi
+            var hargaKonversi = hitungHargaKonversi(hargaDasar, konversiValue, satuanTerpilih);
+            
+            if (hargaKonversi > 0) {
+                updateDOMHargaBeli(keranjangId, hargaKonversi);
+                updateKeranjangSatuan(keranjangId, satuanTerpilih, hargaKonversi, konversiValue);
+            }
+            
+            if (callback) callback();
         }
         
         // ===== UPDATE KERANJANG SATUAN =====
@@ -650,6 +797,7 @@ $marginPersen = max(-999, min(9999, $marginPersen));
                     konversi_value: konversiValue
                 },
                 error: function(xhr, status, error) {
+                    console.log('Error update keranjang satuan:', error);
                 }
             });
         }
@@ -754,7 +902,7 @@ $marginPersen = max(-999, min(9999, $marginPersen));
             
             var totalPPN = totalSetelahDiskon * 0.11;
             var grandTotal = totalSetelahDiskon + totalPPN;
-            var marginKotor = grandTotal - hargaBeliTotal;
+            var marginKotor = totalSetelahDiskon - hargaBeliTotal;
             var marginPersen = hargaBeliTotal > 0 ? (marginKotor / hargaBeliTotal) * 100 : 0;
             marginPersen = Math.max(0, Math.min(100, marginPersen));
             
@@ -842,6 +990,8 @@ $marginPersen = max(-999, min(9999, $marginPersen));
         window.hitungSubtotalItem = hitungSubtotalItem;
         window.hitungTotalKeseluruhan = hitungTotalKeseluruhan;
         window.updateDOMHargaBeli = updateDOMHargaBeli;
+        window.hitungHargaKonversi = hitungHargaKonversi;
+        window.autoCalculateAllSatuanHarga = autoCalculateAllSatuanHarga;
     });
 
     // ===== UTILITY FUNCTIONS =====

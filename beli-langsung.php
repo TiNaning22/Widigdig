@@ -426,39 +426,41 @@ if( isset($_POST["updateStockDraft"]) ){
                     </tbody>
                 </table>
               </div>
-              
        
               <div class="btn-transaksi">
                 <form role="form" action="" method="POST">
                   <div class="row">
-                    <div class="col-md-6 col-lg-7">
+                    <!-- Form Input Kiri -->
+                    <div class="col-md-6 col-lg-6">
+                        <!-- Customer Selection -->
                         <div class="filter-customer">
-                          <div class="form-group">
-                            <label>Customer <b style="color: #007bff; "><?= $nameTipeHarga; ?></b></label>
-                            <select class="form-control select2bs4 pilihan-marketplace" required="" name="invoice_customer">
-                              <!-- <option selected="selected" value="">Pilih Customer</option> -->
-
-                              <?php if ( $r != 1 && $tipeHarga < 1 ) { ?>
-                              <option value="0">Umum</option>
-                              <?php } ?>
-
-                              <?php  
-                                $customer = query("SELECT * FROM customer WHERE customer_cabang = $sessionCabang && customer_status = 1 && customer_category = $tipeHarga ORDER BY customer_id DESC ");
-                              ?>
-                              <?php foreach ( $customer as $ctr ) : ?>
-                                <?php if ( $ctr['customer_id'] > 1 && $ctr['customer_nama'] !== "Customer Umum" ) { ?>
-                                <option value="<?= $ctr['customer_id'] ?>"><?= $ctr['customer_nama'] ?></option>
-                                <?php } ?>
-                              <?php endforeach; ?>
-                            </select>
-                            <small>
-                              <a href="customer-add">Tambah Customer <i class="fa fa-plus"></i></a>
-                            </small>
+                            <div class="form-group">
+                                <label>Customer <b style="color: #007bff; "><?= $nameTipeHarga; ?></b></label>
+                                <select class="form-control select2bs4 pilihan-marketplace" required="" name="invoice_customer">
+                                    <?php if ( $r != 1 && $tipeHarga < 1 ) { ?>
+                                    <option value="0">Umum</option>
+                                    <?php } ?>
+                                    <?php  
+                                        $customer = query("SELECT * FROM customer WHERE customer_cabang = $sessionCabang && customer_status = 1 && customer_category = $tipeHarga ORDER BY customer_id DESC ");
+                                    ?>
+                                    <?php foreach ( $customer as $ctr ) : ?>
+                                        <?php if ( $ctr['customer_id'] > 1 && $ctr['customer_nama'] !== "Customer Umum" ) { ?>
+                                        <option value="<?= $ctr['customer_id'] ?>">
+                                            <?= $ctr['customer_nama'] ?> - <?= $ctr['customer_tlpn'] ?>
+                                        </option>
+                                        <?php } ?>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small>
+                                    <a href="customer-add">Tambah Customer <i class="fa fa-plus"></i></a>
+                                </small>
+                            </div>
                         </div>
 
                         <!-- View Jika Select Dari Marketplace -->
                         <span id="beli-langsung-marketplace"></span>
 
+                        <!-- Tipe Pembayaran -->
                         <div class="form-group">
                             <label>Tipe Pembayaran</label>
                             <select class="form-control" required="" name="invoice_tipe_transaksi">
@@ -467,6 +469,7 @@ if( isset($_POST["updateStockDraft"]) ){
                             </select>
                         </div>
 
+                        <!-- Kurir -->
                         <div class="form-group">
                             <label>Kurir</label>
                             <select class="form-control select2bs4" required="" name="invoice_kurir">
@@ -485,7 +488,7 @@ if( isset($_POST["updateStockDraft"]) ){
                             </select>
                         </div>
 
-                        <!-- kondisi jika memilih piutang -->
+                        <!-- Jatuh Tempo untuk Piutang -->
                         <?php if ( $r == 1 ) : ?>
                         <div class="form-group">
                             <label>Jatuh Tempo</label>
@@ -495,29 +498,67 @@ if( isset($_POST["updateStockDraft"]) ){
                               $jatuh_tempo_teks  = "month";
                               $jatuh_tempo       = date('Y-m-d', strtotime('+'.$jatuh_tempo_angka.' '.$jatuh_tempo_teks, strtotime( $tgl1 )));
                             ?>
-                            <input type="date" name="invoice_piutang_jatuh_tempo" value="<?= $jatuh_tempo; ?>" class="form-control" raquired>
+                            <input type="date" name="invoice_piutang_jatuh_tempo" value="<?= $jatuh_tempo; ?>" class="form-control" required>
                             <small style="color: red; margin-right: -10px;">
                                   <b>Default dari system 1 bulan kedepan</b> & ganti sesuai kebutuhan
                             </small>
                         </div>
-                       <?php else : ?>
+                        <?php else : ?>
                           <input type="hidden" name="invoice_piutang_jatuh_tempo" value="0">
-                       <?php endif; ?>
+                        <?php endif; ?>
 
-                      </div>
+                        <!-- Hidden Inputs untuk Data Keranjang -->
+                        <?php foreach ($keranjang as $stk) : ?>
+                        <?php if ( $stk['keranjang_id_kasir'] === $userId ) { ?>
+                          <input type="hidden" name="barang_ids[]" value="<?= $stk['barang_id']; ?>">
+                          <input type="hidden" min="1" name="keranjang_qty[]" value="<?= $stk['keranjang_qty']; ?>"> 
+                          <input type="hidden" min="1" name="keranjang_qty_view[]" value="<?= $stk['keranjang_qty_view']; ?>"> 
+                          <input type="hidden" name="keranjang_konversi_isi[]" value="<?= $stk['keranjang_konversi_isi']; ?>"> 
+                          <input type="hidden" name="keranjang_satuan[]" value="<?= $stk['keranjang_satuan']; ?>"> 
+                          <input type="hidden" name="keranjang_harga_beli[]" value="<?= $stk['keranjang_harga_beli']; ?>">
+                          <input type="hidden" name="keranjang_harga[]" value="<?= $stk['keranjang_harga']; ?>">
+                          <input type="hidden" name="keranjang_harga_parent[]" value="<?= $stk['keranjang_harga_parent']; ?>">
+                          <input type="hidden" name="keranjang_harga_edit[]" value="<?= $stk['keranjang_harga_edit']; ?>">
+                          <input type="hidden" name="keranjang_id_kasir[]" value="<?= $stk['keranjang_id_kasir']; ?>">
+
+                          <input type="hidden" name="penjualan_invoice[]" value="<?= $di; ?>">
+                          <input type="hidden" name="penjualan_date[]" value="<?= date("Y-m-d") ?>">
+
+                          <input type="hidden" name="keranjang_barang_option_sn[]" value="<?= $stk['keranjang_barang_option_sn']; ?>">
+                          <input type="hidden" name="keranjang_barang_sn_id[]" value="<?= $stk['keranjang_barang_sn_id']; ?>">
+                          <input type="hidden" name="keranjang_sn[]" value="<?= $stk['keranjang_sn']; ?>">
+                          <input type="hidden" name="invoice_customer_category2[]" value="<?= $tipeHarga; ?>">
+                          <input type="hidden" name="keranjang_nama[]" value="<?= $stk['keranjang_nama']; ?>">
+                          <input type="hidden" name="barang_kode_slug[]" value="<?= $stk['barang_kode_slug']; ?>">
+                          <input type="hidden" name="keranjang_id_cek[]" value="<?= $stk['keranjang_id_cek']; ?>">
+                          <input type="hidden" name="penjualan_cabang[]" value="<?= $sessionCabang; ?>">
+                        <?php } ?>
+                        <?php endforeach; ?>  
+
+                        <!-- Hidden Inputs untuk Data Transaksi -->
+                        <input type="hidden" name="penjualan_invoice2" value="<?= $di; ?>">
+                        <input type="hidden" name="invoice_customer_category" value="<?= $tipeHarga; ?>">
+                        <input type="hidden" name="kik" value="<?= $userId; ?>">
+                        <input type="hidden" name="penjualan_invoice_count" value="<?= $jmlPenjualan1; ?>">
+                        <input type="hidden" name="invoice_piutang" value="<?= $r; ?>">
+                        <input type="hidden" name="invoice_piutang_lunas" value="0">
+                        <input type="hidden" name="invoice_cabang" value="<?= $sessionCabang; ?>">
+                        <input type="hidden" name="invoice_total_beli" value="<?= $total_beli; ?>">
+
                     </div>
-                    <div class="col-md-6 col-lg-5">
+
+                    <!-- Tabel Perhitungan Kanan -->
+                    <div class="col-md-6 col-lg-6">
                       <div class="invoice-table">
                         <table class="table">
+                          <!-- Total -->
                           <tr>
                               <td style="width: 110px;"><b>Total</b></td>
                               <td class="table-nominal">
-                                 <!-- Rp. <?php echo number_format($total, 0, ',', '.'); ?> -->
                                  <span>Rp. </span>
                                  <span>
                                     <input type="text" name="invoice_total" id="angka2" class="a2"  value="<?= $total; ?>" onkeyup="return isNumberKey(event)" size="10" readonly>
                                  </span>
-                                 
                               </td>
                           </tr>
 
@@ -527,31 +568,20 @@ if( isset($_POST["updateStockDraft"]) ){
                               <td class="table-nominal tn">
                                  <span>Rp.</span> 
                                  <span class="ongkir-beli-langsung">
-                                   <input type="number" name="invoice_ongkir" id="" class="b2 ongkir-dinamis-input" autocomplete="off" onkeyup="hitung2();" onkeyup="return isNumberKey(event)"  onkeypress="return hanyaAngka1(event)">
+                                   <input type="number" name="invoice_ongkir" id="" class="b2 ongkir-dinamis-input" autocomplete="off" onkeyup="hitung2();" onkeypress="return hanyaAngka1(event)">
                                    <i class="fa fa-close fa-ongkir-dinamis"></i>
-                                 </span>
-                              </td>
-                          </tr>
-                          <tr class="ongkir-dinamis none">
-                              <td>Diskon</td>
-                              <td class="table-nominal tn">
-                                 <span>Rp.</span> 
-                                 <span>
-                                   <input type="number" name="invoice_diskon" id="" class="f2 ongkir-dinamis-diskon" autocomplete="off" onkeyup="hitung6();" onkeyup="return isNumberKey(event)" onkeypress="return hanyaAngka1(event)" size="10">
                                  </span>
                               </td>
                           </tr>
 
                           <tr class="ongkir-dinamis none">
                                 <td><b>Sub Total</b></td>
-
                                 <td class="table-nominal c2parent">
                                    <span>Rp. </span>
                                    <span>
                                       <input type="text" name="invoice_sub_total"  class="c2"  value="<?= $total; ?>" readonly>
                                    </span>
                                 </td>
-
                                 <td class="table-nominal g2parent" style="display: none;">
                                    <span>Rp. </span>
                                    <span >
@@ -564,7 +594,6 @@ if( isset($_POST["updateStockDraft"]) ){
                                 <td>
                                     <b style="color: red;">
                                         <?php  
-                                          // kondisi jika memilih piutang
                                           if ( $r == 1 ) {
                                             echo "DP";
                                           } else {
@@ -573,18 +602,16 @@ if( isset($_POST["updateStockDraft"]) ){
                                         ?>      
                                     </b>
                                 </td>
-
                                 <td class="table-nominal tn d2parent">
                                    <span>Rp.</span> 
                                    <span class="">
-                                     <input type="number" name="angka1" id="angka1" class="d2 ongkir-dinamis-bayar" autocomplete="off" onkeyup="hitung3();"  onkeyup="return isNumberKey(event)" onkeypress="return hanyaAngka1(event)" size="10">
+                                     <input type="number" name="angka1" id="angka1" class="d2 ongkir-dinamis-bayar" autocomplete="off" onkeyup="hitung3();" onkeypress="return hanyaAngka1(event)" size="10">
                                    </span>
                                 </td>
-
                                 <td class="table-nominal tn h2parent" style="display: none;">
                                    <span>Rp.</span> 
                                    <span class="" >
-                                     <input type="number" name="angka1" id="angka1" class="h22 ongkir-dinamis-bayar" autocomplete="off" onkeyup="hitung7();"  onkeyup="return isNumberKey(event)" onkeypress="return hanyaAngka1(event)" size="10">
+                                     <input type="number" name="angka1" id="angka1" class="h22 ongkir-dinamis-bayar" autocomplete="off" onkeyup="hitung7();" onkeypress="return hanyaAngka1(event)" size="10">
                                    </span>
                                 </td>
                           </tr>
@@ -592,7 +619,6 @@ if( isset($_POST["updateStockDraft"]) ){
                           <tr class="ongkir-dinamis none">
                               <td>
                                   <?php  
-                                    // kondisi jika memilih piutang
                                     if ( $r == 1 ) {
                                         echo "Sisa Piutang";
                                     } else {
@@ -607,7 +633,7 @@ if( isset($_POST["updateStockDraft"]) ){
                                 </span>
                               </td>
                           </tr>
-                        <!-- End Ongkir Dinamis untuk Inputan -->
+                        <!-- End Ongkir Dinamis -->
 
                         <!-- Ongkir Statis untuk Inputan -->
                           <tr class="ongkir-statis">
@@ -625,7 +651,7 @@ if( isset($_POST["updateStockDraft"]) ){
                               <td class="table-nominal tn">
                                  <span>Rp.</span> 
                                  <span>
-                                   <input type="number" name="invoice_diskon" id="" class="f21 ongkir-statis-diskon" value="0" required="" autocomplete="off" onkeyup="hitung5();" onkeyup="return isNumberKey(event)" onkeypress="return hanyaAngka1(event)" size="10">
+                                   <input type="number" name="invoice_diskon" id="" class="f21 ongkir-statis-diskon" value="0" required="" autocomplete="off" onkeyup="hitung5();" onkeypress="return hanyaAngka1(event)" size="10">
                                  </span>
                               </td>
                           </tr>
@@ -640,14 +666,12 @@ if( isset($_POST["updateStockDraft"]) ){
                                     <input type="hidden" name=""  class="g21"  value="<?= $subTotal; ?>" readonly>
                                     <input type="text" name="invoice_sub_total"  class="c21"  value="<?= $subTotal; ?>" readonly>
                                  </span>
-                                 
                               </td>
                           </tr>
                           <tr class="ongkir-statis">
                               <td>
                                   <b style="color: red;">
                                       <?php  
-                                        // kondisi jika memilih piutang
                                         if ( $r == 1 ) {
                                           echo "DP";
                                         } else {
@@ -659,14 +683,13 @@ if( isset($_POST["updateStockDraft"]) ){
                               <td class="table-nominal tn">
                                  <span>Rp.</span> 
                                  <span>
-                                   <input type="number" name="angka1" id="angka1" class="d21 ongkir-statis-bayar" autocomplete="off" onkeyup="hitung4();"  onkeyup="return isNumberKey(event)" onkeypress="return hanyaAngka1(event)" size="10">
+                                   <input type="number" name="angka1" id="angka1" class="d21 ongkir-statis-bayar" autocomplete="off" onkeyup="hitung4();" onkeypress="return hanyaAngka1(event)" size="10">
                                  </span>
                               </td>
                           </tr>
                           <tr class="ongkir-statis">
                               <td>
                                   <?php  
-                                    // kondisi jika memilih piutang
                                     if ( $r == 1 ) {
                                         echo "Sisa Piutang";
                                     } else {
@@ -681,51 +704,11 @@ if( isset($_POST["updateStockDraft"]) ){
                                 </span>
                               </td>
                           </tr>
-                        <!-- End Ongkir Statis untuk Inputan -->
-
-                          
-                          <tr>
-                              <td></td>
-                              <td>
-
-                                <?php  foreach ($keranjang as $stk) : ?>
-                                <?php if ( $stk['keranjang_id_kasir'] === $userId ) { ?>
-                                  <input type="hidden" name="barang_ids[]" value="<?= $stk['barang_id']; ?>">
-                                  <input type="hidden" min="1" name="keranjang_qty[]" value="<?= $stk['keranjang_qty']; ?>"> 
-                                  <input type="hidden" min="1" name="keranjang_qty_view[]" value="<?= $stk['keranjang_qty_view']; ?>"> 
-                                  <input type="hidden" name="keranjang_konversi_isi[]" value="<?= $stk['keranjang_konversi_isi']; ?>"> 
-                                  <input type="hidden" name="keranjang_satuan[]" value="<?= $stk['keranjang_satuan']; ?>"> 
-                                  <input type="hidden" name="keranjang_harga_beli[]" value="<?= $stk['keranjang_harga_beli']; ?>">
-                                  <input type="hidden" name="keranjang_harga[]" value="<?= $stk['keranjang_harga']; ?>">
-                                  <input type="hidden" name="keranjang_harga_parent[]" value="<?= $stk['keranjang_harga_parent']; ?>">
-                                  <input type="hidden" name="keranjang_harga_edit[]" value="<?= $stk['keranjang_harga_edit']; ?>">
-                                  <input type="hidden" name="keranjang_id_kasir[]" value="<?= $stk['keranjang_id_kasir']; ?>">
-
-                                  <input type="hidden" name="penjualan_invoice[]" value="<?= $di; ?>">
-                                  <input type="hidden" name="penjualan_date[]" value="<?= date("Y-m-d") ?>">
-
-                                  <input type="hidden" name="keranjang_barang_option_sn[]" value="<?= $stk['keranjang_barang_option_sn']; ?>">
-                                  <input type="hidden" name="keranjang_barang_sn_id[]" value="<?= $stk['keranjang_barang_sn_id']; ?>">
-                                  <input type="hidden" name="keranjang_sn[]" value="<?= $stk['keranjang_sn']; ?>">
-                                  <input type="hidden" name="invoice_customer_category2[]" value="<?= $tipeHarga; ?>">
-                                  <input type="hidden" name="keranjang_nama[]" value="<?= $stk['keranjang_nama']; ?>">
-                                  <input type="hidden" name="barang_kode_slug[]" value="<?= $stk['barang_kode_slug']; ?>">
-                                  <input type="hidden" name="keranjang_id_cek[]" value="<?= $stk['keranjang_id_cek']; ?>">
-                                  <input type="hidden" name="penjualan_cabang[]" value="<?= $sessionCabang; ?>">
-                                <?php } ?>
-                                <?php endforeach; ?>  
-                                <input type="hidden" name="penjualan_invoice2" value="<?= $di; ?>">
-                                <input type="hidden" name="invoice_customer_category" value="<?= $tipeHarga; ?>">
-                                <input type="hidden" name="kik" value="<?= $userId; ?>">
-                                <input type="hidden" name="penjualan_invoice_count" value="<?= $jmlPenjualan1; ?>">
-                                <input type="hidden" name="invoice_piutang" value="<?= $r; ?>">
-                                <input type="hidden" name="invoice_piutang_lunas" value="0">
-                                <input type="hidden" name="invoice_cabang" value="<?= $sessionCabang; ?>">
-                                <input type="hidden" name="invoice_total_beli" value="<?= $total_beli; ?>">
-                              </td>
-                          </tr>
+                        <!-- End Ongkir Statis -->
                         </table>
                       </div>
+
+                      <!-- Payment Buttons -->
                       <div class="payment">
                         <?php  
                             $idKasirKeranjang = $_SESSION['user_id'];
@@ -743,7 +726,7 @@ if( isset($_POST["updateStockDraft"]) ){
 
                                 <a href="#!" class="btn btn-default jmlDataSn" type="" name="">Simpan Payment <i class="fa fa-shopping-cart"></i></a>
                               <?php } ?>
-                          </div>
+                      </div>
                     </div>
                   </div>
                </form>
@@ -803,8 +786,6 @@ if( isset($_POST["updateStockDraft"]) ){
           </div>
         </div>
     </div>
-
-
   
   <!-- Modal Update SN -->
   <div class="modal fade" id="modal-id-1">
