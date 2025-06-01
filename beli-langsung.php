@@ -335,94 +335,106 @@ if( isset($_POST["updateStockDraft"]) ){
                     </tr>
                     </thead>
                     <tbody>
-                    <?php 
-                        $i          = 1; 
-                        $total_beli = 0;
-                        $total      = 0;
-                    ?>
-                    <?php foreach($keranjang as $row) : 
-                        $bik = $row['barang_id'];
-                        
-                        // Query untuk mengambil data satuan
-                        $querySatuan = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
-                                          FROM barang b
-                                          LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
-                                          LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
-                                          LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
-                                          WHERE b.barang_id = '$bik'";
-                        $brg = mysqli_fetch_array(mysqli_query($conn, $querySatuan));
-                        // $querySatuan = "SELECT * FROM satuan WHERE satuan_id IN (
-                        //                 SELECT satuan_id FROM barang_satuan WHERE barang_id = '".$bik."'
-                        //                 )";
-                        // $resultSatuan = mysqli_query($conn, $querySatuan);
-                        $satuanOptions = [];
-                        while($sat = mysqli_fetch_assoc($resultSatuan)) {
-                            $satuanOptions[] = $sat;
-                        }
-                        
-                        // Hitung subtotal dengan diskon
-                        $diskonPersen = $row['keranjang_diskon_persen'] ?? 0;
-                        $hargaSetelahDiskon = $row['keranjang_harga'] * (1 - ($diskonPersen/100));
-                        $sub_total = $hargaSetelahDiskon * $row['keranjang_qty_view'];
-                    ?>
-                    <tr>
-                        <td><?= $i; ?></td>
-                        <td>
-                            <?= $row['keranjang_nama'] ?><br>
-                            <small><a href="#!" id="keranjang-rak" data-id="<?= $bik; ?>"><u>Lihat Lokasi Rak</u></a></small>      
-                        </td>
-                        <td>Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?></td>
-                        <td>
-                            <select name="satuan_pembelian[]" class="form-control satuan-pilihan" 
-                                    data-barangid="<?= $row['barang_id']; ?>" 
-                                    data-keranjang-id="<?= $row['keranjang_id']; ?>">
-                                <option value="1" data-konversi="1" data-harga-beli="<?= $brg['barang_harga_beli']; ?>">
-                                    <?= $brg['satuan_1'] ?>
-                                </option>
-                                <?php if($brg['satuan_id_2'] > 0): ?>
-                                <option value="2" data-konversi="<?= $brg['satuan_isi_1'] ?>" 
-                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_1']; ?>">
-                                    <?= $brg['satuan_2'] ?> (1 <?= $brg['satuan_2'] ?> = <?= $brg['satuan_isi_1'] ?> <?= $brg['satuan_1'] ?>)
-                                </option>
-                                <?php endif; ?>
-                                <?php if($brg['satuan_id_3'] > 0): ?>
-                                <option value="3" data-konversi="<?= $brg['satuan_isi_2'] ?>" 
-                                        data-harga-beli="<?= $brg['barang_harga_beli'] * $brg['satuan_isi_2']; ?>">
-                                    <?= $brg['satuan_3'] ?> (1 <?= $brg['satuan_3'] ?> = <?= $brg['satuan_isi_2'] ?> <?= $brg['satuan_1'] ?>)
-                                </option>
-                                <?php endif; ?>
-                            </select>
-                        </td>
-                        <td style="text-align: center;"><?= $row['keranjang_qty_view']; ?></td>
-                        <td style="text-align: center;">
-                            <input type="number" class="form-control diskon-persen" 
-                                  value="<?= $diskonPersen; ?>" min="0" max="100"
-                                  data-id="<?= $row['keranjang_id']; ?>">
-                        </td>
-                        <td>Rp. <?= number_format($sub_total, 0, ',', '.'); ?></td>
-                        <td class="orderan-online-button">
-                            <a href="barang-zoom?id=<?= base64_encode($row['barang_id']); ?>" target="_blank" title="Lihat Data">
-                              <button class="btn btn-success" name="" >
-                                  <i class="fa fa-eye"></i>
-                              </button> 
-                            </a>
-                            <a href="#!" title="Edit Data">
-                              <button class="btn btn-primary" name="" class="keranjang-pembelian" id="keranjang-qty" data-id="<?= $row['keranjang_id']; ?>">
-                                  <i class="fa fa-pencil"></i>
-                              </button> 
-                            </a>
-                            <a href="beli-langsung-delete?id=<?= $row['keranjang_id']; ?>&customer=<?= $_GET['customer']; ?>&r=<?= $r; ?>" title="Delete Data" onclick="return confirm('Yakin dihapus ?')">
-                                <button class="btn btn-danger" type="submit" name="hapus">
-                                    <i class="fa fa-trash-o"></i>
-                                </button>
-                            </a>
-                        </td>
-                    </tr>
-                    <?php 
-                        $total += $sub_total;
-                        $i++; 
-                    ?>
-                    <?php endforeach; ?>
+                        <?php 
+                            $i          = 1; 
+                            $total_beli = 0;
+                            $total      = 0;
+                        ?>
+                        <?php foreach($keranjang as $row) : 
+                            $bik = $row['barang_id'];
+                            
+                            // Query untuk mengambil data satuan
+                            $query = "SELECT b.*, s1.satuan_nama as satuan_1, s2.satuan_nama as satuan_2, s3.satuan_nama as satuan_3 
+                                    FROM barang b
+                                    LEFT JOIN satuan s1 ON b.satuan_id = s1.satuan_id
+                                    LEFT JOIN satuan s2 ON b.satuan_id_2 = s2.satuan_id
+                                    LEFT JOIN satuan s3 ON b.satuan_id_3 = s3.satuan_id
+                                    WHERE b.barang_id = '$bik'";
+                            $brg = mysqli_fetch_array(mysqli_query($conn, $query));
+                            // $querySatuan = "SELECT * FROM satuan WHERE satuan_id IN (
+                            //                 SELECT satuan_id FROM barang_satuan WHERE barang_id = '".$bik."'
+                            //                 )";
+                            // $resultSatuan = mysqli_query($conn, $querySatuan);
+                            $satuanOptions = [];
+                            while($sat = mysqli_fetch_assoc($resultSatuan)) {
+                                $satuanOptions[] = $sat;
+                            }
+                            
+                            // Hitung subtotal dengan diskon
+                            $diskonPersen = $row['keranjang_diskon_persen'] ?? 0;
+                            $hargaSetelahDiskon = $row['keranjang_harga'] * (1 - ($diskonPersen/100));
+                            $sub_total = $hargaSetelahDiskon * $row['keranjang_qty_view'];
+                        ?>
+                        <tr>
+                            <td><?= $i; ?></td>
+                            <td>
+                                <?= $row['keranjang_nama'] ?><br>
+                                <small><a href="#!" id="keranjang-rak" data-id="<?= $bik; ?>"><u>Lihat Lokasi Rak</u></a></small>      
+                            </td>
+                            <td>Rp. <?= number_format($row['keranjang_harga'], 0, ',', '.'); ?></td>
+                            <td>
+                                <select name="satuan_pembelian[]" class="form-control satuan-pilihan" 
+                                        data-barangid="<?= $row['barang_id']; ?>" 
+                                        data-keranjang-id="<?= $row['keranjang_id']; ?>">
+                                    
+                                    <!-- Satuan 1 (Utama) -->
+                                    <option value="1" 
+                                            data-konversi="1" 
+                                            data-harga="<?= $brg['barang_harga']; ?>">
+                                        <?= $brg['satuan_1'] ?> - Rp <?= number_format($brg['barang_harga']) ?>
+                                    </option>
+                                    
+                                    <!-- Satuan 2 (jika ada) -->
+                                    <?php if($brg['satuan_id_2'] > 0 && $brg['satuan_isi_2'] > 0): ?>
+                                    <option value="2" 
+                                            data-konversi="<?= $brg['satuan_isi_2'] ?>" 
+                                            data-harga="<?= $brg['barang_harga_s2']; ?>">
+                                        <?= $brg['satuan_2'] ?> - Rp <?= number_format($brg['barang_harga_s2']) ?>
+                                        (1 <?= $brg['satuan_1'] ?> = <?= $brg['satuan_2'] ?> <?= $brg['satuan_isi_2'] ?>)
+                                    </option>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Satuan 3 (jika ada) -->
+                                    <?php if($brg['satuan_id_3'] > 0 && $brg['satuan_isi_3'] > 0): ?>
+                                    <option value="3" 
+                                            data-konversi="<?= $brg['satuan_isi_3'] ?>" 
+                                            data-harga="<?= $brg['barang_harga_s3']; ?>">
+                                        <?= $brg['satuan_3'] ?> - Rp <?= number_format($brg['barang_harga_s3']) ?>
+                                        (1 <?= $brg['satuan_1'] ?> = <?= $brg['satuan_3'] ?> <?= $brg['satuan_isi_3'] ?>)
+                                    </option>
+                                    <?php endif; ?>
+                                </select>
+                            </td>
+                            <td style="text-align: center;"><?= $row['keranjang_qty_view']; ?></td>
+                            <td style="text-align: center;">
+                                <input type="number" class="form-control diskon-persen" 
+                                      value="<?= $diskonPersen; ?>" min="0" max="100"
+                                      data-id="<?= $row['keranjang_id']; ?>">
+                            </td>
+                            <td>Rp. <?= number_format($sub_total, 0, ',', '.'); ?></td>
+                            <td class="orderan-online-button">
+                                <a href="barang-zoom?id=<?= base64_encode($row['barang_id']); ?>" target="_blank" title="Lihat Data">
+                                  <button class="btn btn-success" name="" >
+                                      <i class="fa fa-eye"></i>
+                                  </button> 
+                                </a>
+                                <a href="#!" title="Edit Data">
+                                  <button class="btn btn-primary" name="" class="keranjang-pembelian" id="keranjang-qty" data-id="<?= $row['keranjang_id']; ?>">
+                                      <i class="fa fa-pencil"></i>
+                                  </button> 
+                                </a>
+                                <a href="beli-langsung-delete?id=<?= $row['keranjang_id']; ?>&customer=<?= $_GET['customer']; ?>&r=<?= $r; ?>" title="Delete Data" onclick="return confirm('Yakin dihapus ?')">
+                                    <button class="btn btn-danger" type="submit" name="hapus">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php 
+                            $total += $sub_total;
+                            $i++; 
+                        ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
               </div>
@@ -436,17 +448,20 @@ if( isset($_POST["updateStockDraft"]) ){
                         <div class="filter-customer">
                             <div class="form-group">
                                 <label>Customer <b style="color: #007bff; "><?= $nameTipeHarga; ?></b></label>
-                                <select class="form-control select2bs4 pilihan-marketplace" required="" name="invoice_customer">
+                                <select class="form-control select2bs4 pilihan-marketplace customer-select" required="" name="invoice_customer" id="customer-select">
                                     <?php if ( $r != 1 && $tipeHarga < 1 ) { ?>
-                                    <option value="0">Umum</option>
+                                    <option value="0" data-membership="0">Umum</option>
                                     <?php } ?>
                                     <?php  
                                         $customer = query("SELECT * FROM customer WHERE customer_cabang = $sessionCabang && customer_status = 1 && customer_category = $tipeHarga ORDER BY customer_id DESC ");
                                     ?>
                                     <?php foreach ( $customer as $ctr ) : ?>
                                         <?php if ( $ctr['customer_id'] > 1 && $ctr['customer_nama'] !== "Customer Umum" ) { ?>
-                                        <option value="<?= $ctr['customer_id'] ?>">
+                                        <option value="<?= $ctr['customer_id'] ?>" data-membership="<?= $ctr['customer_membership'] ?>">
                                             <?= $ctr['customer_nama'] ?> - <?= $ctr['customer_tlpn'] ?>
+                                            <?php if($ctr['customer_membership'] == '1'): ?>
+                                                <span style="color: #28a745; font-weight: bold;">[MEMBER]</span>
+                                            <?php endif; ?>
                                         </option>
                                         <?php } ?>
                                     <?php endforeach; ?>
@@ -454,6 +469,13 @@ if( isset($_POST["updateStockDraft"]) ){
                                 <small>
                                     <a href="customer-add">Tambah Customer <i class="fa fa-plus"></i></a>
                                 </small>
+                                
+                                <!-- Indikator Membership Discount -->
+                                <div id="membership-indicator" class="mt-2" style="display: none;">
+                                    <span class="badge badge-success">
+                                        <i class="fa fa-star"></i> Member - Diskon 3% otomatis diterapkan
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -517,6 +539,7 @@ if( isset($_POST["updateStockDraft"]) ){
                           <input type="hidden" name="keranjang_satuan[]" value="<?= $stk['keranjang_satuan']; ?>"> 
                           <input type="hidden" name="keranjang_harga_beli[]" value="<?= $stk['keranjang_harga_beli']; ?>">
                           <input type="hidden" name="keranjang_harga[]" value="<?= $stk['keranjang_harga']; ?>">
+                          <input type="hidden" name="keranjang_diskon_persen[]" value="<?= $stk['keranjang_diskon_persen'] ?? 0; ?>"> 
                           <input type="hidden" name="keranjang_harga_parent[]" value="<?= $stk['keranjang_harga_parent']; ?>">
                           <input type="hidden" name="keranjang_harga_edit[]" value="<?= $stk['keranjang_harga_edit']; ?>">
                           <input type="hidden" name="keranjang_id_kasir[]" value="<?= $stk['keranjang_id_kasir']; ?>">
@@ -582,6 +605,15 @@ if( isset($_POST["updateStockDraft"]) ){
                                       <input type="text" name="invoice_sub_total"  class="c2"  value="<?= $total; ?>" readonly>
                                    </span>
                                 </td>
+                                <tr>
+                                    <td><b>Total Diskon</b></td>
+                                    <td class="table-nominal">
+                                        <!-- <span>Rp. </span> -->
+                                        <span>
+                                            <input type="text" name="invoice_diskon" id="total-diskon-display" class="form-control" value="0" readonly style="background-color: #f8f9fa;">
+                                        </span>
+                                    </td>
+                                </tr>
                                 <td class="table-nominal g2parent" style="display: none;">
                                    <span>Rp. </span>
                                    <span >
@@ -643,15 +675,6 @@ if( isset($_POST["updateStockDraft"]) ){
                                  <span class="ongkir-beli-langsung">
                                    <input type="number" value="<?= $dataTokoLogin['toko_ongkir']; ?>" name="invoice_ongkir" id="" class="b2 ongkir-statis-input" readonly>
                                    <i class="fa fa-close fa-ongkir-statis"></i>
-                                 </span>
-                              </td>
-                          </tr>
-                          <tr class="ongkir-statis">
-                              <td>Diskon</td>
-                              <td class="table-nominal tn">
-                                 <span>Rp.</span> 
-                                 <span>
-                                   <input type="number" name="invoice_diskon" id="" class="f21 ongkir-statis-diskon" value="0" required="" autocomplete="off" onkeyup="hitung5();" onkeypress="return hanyaAngka1(event)" size="10">
                                  </span>
                               </td>
                           </tr>
@@ -1144,28 +1167,47 @@ if( isset($_POST["updateStockDraft"]) ){
 
 <script>
   $(document).ready(function(){
-      // Handle perubahan satuan
-      $('.satuan-dropdown').change(function(){
-          var keranjangId = $(this).data('id');
-          var barangId = $(this).data('barang');
-          var satuanId = $(this).val();
-          
-          $.post('beli-langsung-update-satuan.php', {
-              keranjang_id: keranjangId,
-              barang_id: barangId,
-              satuan_id: satuanId
-          }, function(response){
-              location.reload();
-          });
-      });
-      
-      // Handle perubahan diskon
-      $('.diskon-persen').on('change', function() {
+    
+    // Handle perubahan satuan
+    $('.satuan-pilihan').change(function(){
+        var $option = $(this).find(':selected');
+        var hargaBaru = parseFloat($option.data('harga'));
+        var konversi = parseFloat($option.data('konversi'));
+        var $row = $(this).closest('tr');
+        
+        // Update harga di tampilan
+        $row.find('td:eq(2)').html('Rp. ' + hargaBaru.toLocaleString('id-ID'));
+        
+        // Hitung ulang subtotal
+        var qty = parseFloat($row.find('td:eq(4)').text());
+        var diskon = parseFloat($row.find('.diskon-persen').val()) || 0;
+        var subtotal = hargaBaru * qty * (1 - (diskon/100));
+        
+        // Update subtotal
+        $row.find('td:eq(6)').html('Rp. ' + subtotal.toLocaleString('id-ID'));
+        
+        // Update total keseluruhan
+        hitungTotalBelanja();
+    });
+    
+    // Handle perubahan diskon - DIPINDAHKAN KE LUAR DARI CHANGE EVENT
+    $('.diskon-persen').on('change', function() {
         var keranjangId = $(this).data('id');
         var diskon = $(this).val();
         var $row = $(this).closest('tr');
-        var harga = parseFloat($row.find('td:eq(2)').text().replace('Rp. ', '').replace(/\./g, ''));
-        var qty = parseFloat($row.find('td:eq(4)').text());
+        var hargaText = $row.find('td:eq(2)').text().replace('Rp. ', '').replace(/\./g, '').replace(/,/g, '');
+        var harga = parseFloat(hargaText) || 0;
+        var qty = parseFloat($row.find('td:eq(4)').text()) || 0;
+        
+        // Validasi diskon tidak boleh lebih dari 100%
+        if(diskon > 100) {
+            $(this).val(100);
+            diskon = 100;
+        }
+        if(diskon < 0) {
+            $(this).val(0);
+            diskon = 0;
+        }
         
         // Kirim request update ke server
         $.ajax({
@@ -1178,37 +1220,170 @@ if( isset($_POST["updateStockDraft"]) ){
             dataType: 'json',
             success: function(response) {
                 if(response.success) {
-                    // Hitung ulang subtotal
-                    var subtotal = harga * qty * (1 - (diskon/100));
-                    
-                    // Update tampilan
-                    $row.find('td:eq(6)').html('Rp. ' + subtotal.toLocaleString('id-ID'));
-                    
-                    // Hitung ulang total keseluruhan
+                    // Hitung ulang semua total termasuk total diskon
                     hitungTotalBelanja();
+                } else {
+                    alert('Gagal menyimpan diskon: ' + (response.message || 'Unknown error'));
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
                 alert('Terjadi kesalahan saat menyimpan diskon');
             }
         });
     });
+
+    // Handle perubahan customer - DIPINDAHKAN KE LUAR
+    $('#customer-select').change(function() {
+        var selectedOption = $(this).find(':selected');
+        var isMembership = selectedOption.data('membership') == '1';
+        
+        console.log('Customer changed:', selectedOption.val(), 'Is Member:', isMembership); // Debug
+        
+        if (isMembership) {
+            // Tampilkan indikator membership
+            $('#membership-indicator').show();
+            
+            // Terapkan diskon 3% ke semua item di keranjang
+            applyMembershipDiscount();
+        } else {
+            // Sembunyikan indikator membership
+            $('#membership-indicator').hide();
+            
+            // Reset diskon membership
+            removeMembershipDiscount();
+        }
+    });
     
-    // Fungsi untuk menghitung total belanja
-    function hitungTotalBelanja() {
-        var total = 0;
+    // Fungsi untuk menerapkan diskon membership 3%
+    function applyMembershipDiscount() {
+        console.log('Applying membership discount...'); // Debug
+        
         $('tbody tr').each(function() {
-            var subtotal = parseFloat($(this).find('td:eq(6)').text().replace('Rp. ', '').replace(/\./g, ''));
-            if(!isNaN(subtotal)) {
-                total += subtotal;
+            var $row = $(this);
+            var $diskonInput = $row.find('.diskon-persen');
+            
+            if($diskonInput.length > 0) {
+                var currentDiskon = parseFloat($diskonInput.val()) || 0;
+                
+                console.log('Current discount:', currentDiskon); // Debug
+                
+                // Set diskon ke 3% (atau tambahkan 3% jika sudah ada diskon)
+                var newDiskon = Math.max(currentDiskon, 3); // Ambil yang lebih besar antara diskon saat ini atau 3%
+                
+                $diskonInput.val(newDiskon);
+                
+                // Trigger change event untuk menghitung ulang subtotal dan simpan ke database
+                $diskonInput.trigger('change');
             }
         });
+    }
+    
+    // Fungsi untuk menghapus diskon membership
+    function removeMembershipDiscount() {
+        console.log('Removing membership discount...'); // Debug
+        
+        $('tbody tr').each(function() {
+            var $row = $(this);
+            var $diskonInput = $row.find('.diskon-persen');
+            
+            if($diskonInput.length > 0) {
+                var currentDiskon = parseFloat($diskonInput.val()) || 0;
+                
+                // Jika diskon adalah 3% atau lebih (kemungkinan dari membership), reset ke 0
+                // Atau bisa dimodifikasi sesuai business logic
+                if (currentDiskon >= 3) {
+                    $diskonInput.val(0);
+                    
+                    // Trigger change event untuk menghitung ulang subtotal dan simpan ke database
+                    $diskonInput.trigger('change');
+                }
+            }
+        });
+    }
+    
+    // Jalankan saat halaman pertama kali dimuat untuk cek status customer
+    setTimeout(function() {
+        $('#customer-select').trigger('change');
+    }, 500); // Delay untuk memastikan DOM sudah siap
+    
+    // Jika ada customer yang sudah terpilih saat page load
+    if($('#customer-select').val()) {
+            $('#customer-select').trigger('change');
+        }
+    });
+
+    function hitungTotalDiskon() {
+        var totalDiskon = 0;
+        
+        $('tbody tr').each(function() {
+            var $row = $(this);
+            var hargaText = $row.find('td:eq(2)').text().replace('Rp. ', '').replace(/\./g, '').replace(/,/g, '');
+            var harga = parseFloat(hargaText) || 0;
+            var qty = parseFloat($row.find('td:eq(4)').text()) || 0;
+            var diskonPersen = parseFloat($row.find('.diskon-persen').val()) || 0;
+            
+            // Hitung nominal diskon per item
+            var nominalDiskonPerItem = (harga * qty) * (diskonPersen / 100);
+            totalDiskon += nominalDiskonPerItem;
+        });
+        
+        // Update field total diskon
+        $('#total-diskon-display').val(totalDiskon.toFixed(0));
+        
+        return totalDiskon;
+    }
+
+    // Fungsi untuk menghitung total belanja - DIPINDAHKAN KE LUAR DOCUMENT READY
+    function hitungTotalBelanja() {
+        var total = 0;
+        var totalDiskon = 0; // Tambah variabel ini
+        
+        $('tbody tr').each(function() {
+            var $row = $(this);
+            var hargaText = $row.find('td:eq(2)').text().replace('Rp. ', '').replace(/\./g, '').replace(/,/g, '');
+            var harga = parseFloat(hargaText) || 0;
+            var qty = parseFloat($row.find('td:eq(4)').text()) || 0;
+            var diskon = parseFloat($row.find('.diskon-persen').val()) || 0;
+            
+            var subtotal = harga * qty * (1 - (diskon/100));
+            
+            // Hitung total diskon
+            var nominalDiskonPerItem = (harga * qty) * (diskon / 100);
+            totalDiskon += nominalDiskonPerItem;
+            
+            // Update subtotal di tampilan
+            $row.find('td:eq(6)').html('Rp. ' + subtotal.toLocaleString('id-ID'));
+            
+            total += subtotal;
+        });
+        
+        // Update total diskon display
+        $('#total-diskon-display').val(totalDiskon.toFixed(0));
         
         // Update total di bagian pembayaran
-        $('.a2').val(total);
-        $('.c2').val(total);
-        $('.c21').val(total + parseFloat($('.b2').val() || 0));
-        $('.g21').val(total + parseFloat($('.b2').val() || 0));
+        $('#angka2, .a2').val(total);
+        
+        // Update perhitungan ongkir
+        updateOngkirCalculation(total);
     }
-  });
+
+    // Fungsi terpisah untuk update perhitungan ongkir
+    function updateOngkirCalculation(total) {
+        if ($('.ongkir-dinamis').is(':visible')) {
+            var ongkir = parseFloat($('.b2').val()) || 0;
+            var diskon = parseFloat($('.f2').val()) || 0; // Jika ada field diskon
+            var subtotal = total + ongkir - diskon;
+            
+            $('.c2').val(subtotal);
+            $('.g2').val(subtotal);
+        } else if ($('.ongkir-statis').is(':visible')) {
+            var ongkir = parseFloat($('.ongkir-statis-input').val()) || 0;
+            var diskon = parseFloat($('.f21').val()) || 0;
+            var subtotal = total + ongkir - diskon;
+            
+            $('.c21').val(subtotal);
+            $('.g21').val(subtotal);
+        }
+    }
 </script>

@@ -1,5 +1,6 @@
 <?php
 include '_config.php';
+include 'aksi/koneksi';
 
 $keranjangId = $_POST['keranjang_id'];
 $barangId = $_POST['barang_id'];
