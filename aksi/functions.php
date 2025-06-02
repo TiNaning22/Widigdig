@@ -556,9 +556,9 @@ function tambahKeranjang($keranjang_cabang,
 	$keranjang_barang_option_sn, 
 	$keranjang_sn, 
 	$keranjang_id_cek, 
-	$customer) {
+	$customer,
+	$keranjang_diskon_persen = 0) {
 	global $conn;
-
 
 	// Cek STOCK
 	$barang_id_cek = mysqli_num_rows(mysqli_query($conn, "select * from keranjang where keranjang_id_cek = '$keranjang_id_cek' "));
@@ -576,7 +576,8 @@ function tambahKeranjang($keranjang_cabang,
 
         $query = "UPDATE keranjang SET 
 					keranjang_qty   	= '$kqkk',
-					keranjang_qty_view  = '$kqvk'
+					keranjang_qty_view  = '$kqvk',
+					keranjang_diskon_persen = '$keranjang_diskon_persen'
 					WHERE keranjang_id_cek = $keranjang_id_cek
 					";
 		mysqli_query($conn, $query);
@@ -602,7 +603,8 @@ function tambahKeranjang($keranjang_cabang,
 		'$keranjang_id_kasir', 
 		'$keranjang_id_cek', 
 		'$customer', 
-		'$keranjang_cabang')";
+		'$keranjang_cabang',
+		'$keranjang_diskon_persen')";
 		
 		mysqli_query($conn, $query);
 
@@ -1191,6 +1193,10 @@ function updateStock($data) {
 	$keranjang_satuan           = $data['keranjang_satuan'];
 	$keranjang_harga_beli       = $data['keranjang_harga_beli'];
 	$keranjang_harga			= $data['keranjang_harga'];
+	
+	// TAMBAHKAN INI - Ambil data diskon dari form
+	$keranjang_diskon_persen    = $data['keranjang_diskon_persen'];
+	
 	$keranjang_harga_parent		= $data['keranjang_harga_parent'];
 	$keranjang_harga_edit		= $data['keranjang_harga_edit'];
 	$keranjang_id_kasir  		= $data['keranjang_id_kasir'];
@@ -1205,13 +1211,32 @@ function updateStock($data) {
 	$penjualan_invoice2  		= $data['penjualan_invoice2'];
 	$invoice_tgl         		= date("d F Y g:i:s a");
 	$invoice_total_beli       	= $data['invoice_total_beli'];
-	$invoice_total       		= $data['invoice_total'];
+	
+	// PERBAIKI PERHITUNGAN TOTAL
+	// Hitung total dengan benar berdasarkan diskon per item
+	$invoice_total = 0;
+	$jumlah = count($keranjang_harga);
+	
+	for($i = 0; $i < $jumlah; $i++) {
+		$harga_item = $keranjang_harga[$i];
+		$qty_item = $keranjang_qty_view[$i];
+		$diskon_persen = $keranjang_diskon_persen[$i] ?? 0;
+		
+		// Hitung subtotal per item dengan diskon
+		$subtotal_item = $harga_item * $qty_item * (1 - ($diskon_persen/100));
+		$invoice_total += $subtotal_item;
+	}
+	
+	// JANGAN ambil dari form karena bisa tidak akurat
+	// $invoice_total = $data['invoice_total']; // HAPUS INI
+	
 	$invoice_ongkir      		= htmlspecialchars($data['invoice_ongkir']);
 	$invoice_diskon      		= htmlspecialchars($data['invoice_diskon']);
 	
 	$invoice_sub_total   		= $invoice_total + $invoice_ongkir;
 	$invoice_sub_total   		= $invoice_sub_total - $invoice_diskon;
 	$invoice_bayar       		= htmlspecialchars($data['angka1']);
+	
 	if ( $invoice_bayar == null ) {
 		echo"
 			<script>
@@ -1231,16 +1256,17 @@ function updateStock($data) {
 	$invoice_tipe_transaksi  	= $data['invoice_tipe_transaksi'];
 	$penjualan_invoice_count 	= $data['penjualan_invoice_count'];
 	$invoice_piutang			= $data['invoice_piutang'];
+	
 	if ( $invoice_piutang == 1 ) {
 		$invoice_piutang_dp = $invoice_bayar;
 	} else {
 		$invoice_piutang_dp = 0;
 	}
+	
 	$invoice_piutang_jatuh_tempo= $data['invoice_piutang_jatuh_tempo'];
 	$invoice_piutang_lunas		= $data['invoice_piutang_lunas'];
 	$invoice_cabang             = $data['invoice_cabang'];
 	
-
 	if ( $invoice_customer == 1 ) {
 		$invoice_marketplace = htmlspecialchars($data['invoice_marketplace']);
 		$invoice_ekspedisi   = htmlspecialchars($data['invoice_ekspedisi']);
@@ -1250,7 +1276,6 @@ function updateStock($data) {
 		$invoice_ekspedisi   = 0;
 		$invoice_no_resi     = "-";
 	}
-	$jumlah = count($keranjang_id_kasir);
 
 	if ( $invoice_piutang == 0 && $invoice_bayar < $invoice_sub_total ) {
 		echo"
@@ -1267,13 +1292,17 @@ function updateStock($data) {
 			</script>
 		";
 	} else {
+		
 		// query insert invoice
 		$query1 = "INSERT INTO invoice VALUES ('', '$penjualan_invoice2', '$penjualan_invoice_count', '$invoice_tgl', '$invoice_customer', '$invoice_customer_category', '$invoice_kurir', '1', '$invoice_tipe_transaksi', '$invoice_total_beli', '$invoice_total', '$invoice_ongkir', '$invoice_diskon', '$invoice_sub_total', '$invoice_bayar', '$invoice_kembali', '$kik', '$invoice_date', '$invoice_date_year_month', ' ', ' ', '$invoice_total_beli', '$invoice_total', '$invoice_ongkir', '$invoice_sub_total', '$invoice_bayar', '$invoice_kembali', '$invoice_marketplace', '$invoice_ekspedisi', '$invoice_no_resi', '-', '$invoice_piutang', '$invoice_piutang_dp', '$invoice_piutang_jatuh_tempo', '$invoice_piutang_lunas', 0, '$invoice_cabang')";
-		// var_dump($query1); die();
+		
 		mysqli_query($conn, $query1);
 
 		for( $x=0; $x<$jumlah; $x++ ){
-			$query = "INSERT INTO penjualan VALUES ('', '$id[$x]', '$id[$x]', '$keranjang_qty_view[$x]', '$keranjang_qty[$x]', '$keranjang_konversi_isi[$x]', '$keranjang_satuan[$x]','$keranjang_harga_beli[$x]', '$keranjang_harga[$x]', '$keranjang_harga_parent[$x]', '$keranjang_harga_edit[$x]', '$keranjang_id_kasir[$x]', '$penjualan_invoice[$x]' , '$penjualan_date[$x]', '$invoice_date_year_month', '$keranjang_qty_view[$x]', '$keranjang_qty_view[$x]', '$keranjang_barang_option_sn[$x]', '$keranjang_barang_sn_id[$x]', '$keranjang_sn[$x]', '$invoice_customer_category2[$x]', '$penjualan_cabang[$x]')";
+			// SIMPAN juga data diskon per item ke database penjualan
+			$harga_setelah_diskon = $keranjang_harga[$x] * (1 - ($keranjang_diskon_persen[$x]/100));
+			
+			$query = "INSERT INTO penjualan VALUES ('', '$id[$x]', '$id[$x]', '$keranjang_qty_view[$x]', '$keranjang_qty[$x]', '$keranjang_konversi_isi[$x]', '$keranjang_satuan[$x]','$keranjang_harga_beli[$x]', '$harga_setelah_diskon', '$keranjang_harga_parent[$x]', '$keranjang_harga_edit[$x]', '$keranjang_id_kasir[$x]', '$penjualan_invoice[$x]' , '$penjualan_date[$x]', '$invoice_date_year_month', '$keranjang_qty_view[$x]', '$keranjang_qty_view[$x]', '$keranjang_barang_option_sn[$x]', '$keranjang_barang_sn_id[$x]', '$keranjang_sn[$x]', '$invoice_customer_category2[$x]', '$penjualan_cabang[$x]')";
 			$query2 = "INSERT INTO terlaris VALUES ('', '$id[$x]', '$keranjang_qty[$x]')";
 
 			mysqli_query($conn, $query);

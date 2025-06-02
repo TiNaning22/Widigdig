@@ -944,88 +944,7 @@ if( isset($_POST["updateStockDraft"]) ){
     $("#example7").DataTable();
   });
 </script>
-<script>
-    // Fungsi validasi input angka
-    function hanyaAngka(evt) {
-        var charCode = (evt.which) ? evt.which : event.keyCode
-        if (charCode > 31 && (charCode < 48 || charCode > 57))
-            return false;
-        return true;
-    }
-    
-    function isNumberKey(evt) {
-        var charCode = (evt.which) ? evt.which : event.keyCode;
-        if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57))
-            return false;
-        return true;
-    }
 
-    // ================== VERSI DINAMIS ================== //
-    function hitungOngkirDinamis() {
-        var totalBelanja = parseFloat($(".a2").val()) || 0;
-        var ongkir = parseFloat($(".b2").val()) || 0;
-        var subTotal = totalBelanja + ongkir;
-        $(".c2").val(subTotal);
-        $(".g2").val(subTotal); // Untuk perhitungan diskon
-        hitungDiskonDinamis(); // Update diskon setelah ongkir berubah
-    }
-
-    function hitungDiskonDinamis() {
-        var subTotal = parseFloat($(".g2").val()) || 0;
-        var diskon = parseFloat($(".f2").val()) || 0;
-        var totalSetelahDiskon = subTotal - diskon;
-        $(".c2").val(totalSetelahDiskon);
-        hitungBayarDinamis(); // Update pembayaran setelah diskon berubah
-    }
-
-    function hitungBayarDinamis() {
-        var totalBayar = parseFloat($(".c2").val()) || 0;
-        var dibayar = parseFloat($(".d2").val()) || 0;
-        var kembalian = dibayar - totalBayar;
-        $(".e2").val(kembalian);
-    }
-
-    // ================== VERSI STATIS ================== //
-    function hitungOngkirStatis() {
-        var totalBelanja = parseFloat($(".a2").val()) || 0;
-        var ongkir = parseFloat($(".b2").val()) || 0;
-        var subTotal = totalBelanja + ongkir;
-        $(".c21").val(subTotal);
-        $(".g21").val(subTotal); // Untuk perhitungan diskon
-        hitungDiskonStatis(); // Update diskon setelah ongkir berubah
-    }
-
-    function hitungDiskonStatis() {
-        var subTotal = parseFloat($(".g21").val()) || 0;
-        var diskon = parseFloat($(".f21").val()) || 0;
-        var totalSetelahDiskon = subTotal - diskon;
-        $(".c21").val(totalSetelahDiskon);
-        hitungBayarStatis(); // Update pembayaran setelah diskon berubah
-    }
-
-    function hitungBayarStatis() {
-        var totalBayar = parseFloat($(".c21").val()) || 0;
-        var dibayar = parseFloat($(".d21").val()) || 0;
-        var kembalian = dibayar - totalBayar;
-        $(".e21").val(kembalian);
-    }
-
-    // Inisialisasi event handlers
-    $(document).ready(function() {
-        // Versi Dinamis
-        $(".b2").on('keyup', hitungOngkirDinamis);
-        $(".f2").on('keyup', hitungDiskonDinamis);
-        $(".d2").on('keyup', hitungBayarDinamis);
-        
-        // Versi Statis
-        $(".f21").on('keyup', hitungDiskonStatis);
-        $(".d21").on('keyup', hitungBayarStatis);
-        
-        // Jalankan perhitungan awal
-        hitungOngkirDinamis();
-        hitungOngkirStatis();
-    });
-</script>
 <script>
   $(function () {
 
@@ -1163,6 +1082,89 @@ if( isset($_POST["updateStockDraft"]) ){
       document.location.href = "beli-langsung?customer=<?= base64_encode(0); ?>";
     }
   }
+</script>
+
+<script>
+    // Fungsi validasi input angka
+    function hanyaAngka(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+        if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+
+    // ================== VERSI DINAMIS ================== //
+    function hitungOngkirDinamis() {
+        var totalBelanja = parseFloat($(".a2").val()) || 0;
+        var ongkir = parseFloat($(".b2").val()) || 0;
+        var subTotal = totalBelanja + ongkir;
+        $(".c2").val(subTotal);
+        $(".g2").val(subTotal); // Untuk perhitungan diskon
+        hitungDiskonDinamis(); // Update diskon setelah ongkir berubah
+    }
+
+    function hitungDiskonDinamis() {
+        var subTotal = parseFloat($(".g2").val()) || 0;
+        var diskon = parseFloat($(".f2").val()) || 0;
+        var totalSetelahDiskon = subTotal - diskon;
+        $(".c2").val(totalSetelahDiskon);
+        hitungBayarDinamis(); // Update pembayaran setelah diskon berubah
+    }
+
+    function hitungBayarDinamis() {
+        var totalBayar = parseFloat($(".c2").val()) || 0;
+        var dibayar = parseFloat($(".d2").val()) || 0;
+        var kembalian = dibayar - totalBayar;
+        $(".e2").val(kembalian);
+    }
+
+    // ================== VERSI STATIS ================== //
+    function hitungOngkirStatis() {
+        var totalBelanja = parseFloat($(".a2").val()) || 0;
+        var ongkir = parseFloat($(".b2").val()) || 0;
+        var subTotal = totalBelanja + ongkir;
+        $(".c21").val(subTotal);
+        $(".g21").val(subTotal); // Untuk perhitungan diskon
+        hitungDiskonStatis(); // Update diskon setelah ongkir berubah
+    }
+
+    function hitungDiskonStatis() {
+        var subTotal = parseFloat($(".g21").val()) || 0;
+        var diskon = parseFloat($(".f21").val()) || 0;
+        var totalSetelahDiskon = subTotal - diskon;
+        $(".c21").val(totalSetelahDiskon);
+        hitungBayarStatis(); // Update pembayaran setelah diskon berubah
+    }
+
+    function hitungBayarStatis() {
+        var totalBayar = parseFloat($(".c21").val()) || 0;
+        var dibayar = parseFloat($(".d21").val()) || 0;
+        var kembalian = dibayar - totalBayar;
+        $(".e21").val(kembalian);
+    }
+
+    // Inisialisasi event handlers
+    $(document).ready(function() {
+        // Versi Dinamis
+        $(".b2").on('keyup', hitungOngkirDinamis);
+        $(".f2").on('keyup', hitungDiskonDinamis);
+        $(".d2").on('keyup', hitungBayarDinamis);
+        
+        // Versi Statis
+        $(".f21").on('keyup', hitungDiskonStatis);
+        $(".d21").on('keyup', hitungBayarStatis);
+        
+        // Jalankan perhitungan awal
+        hitungOngkirDinamis();
+        hitungOngkirStatis();
+    });
 </script>
 
 <script>
